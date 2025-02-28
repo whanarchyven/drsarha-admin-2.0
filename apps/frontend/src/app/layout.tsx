@@ -1,11 +1,13 @@
-export const revalidate = 0 // revalidate at most every hour
+"use client"
 import './globals.css';
-import React from 'react';
+import React, { useState } from 'react';
 import type { Metadata } from 'next';
 import { Toaster } from 'sonner';
-// import 'swiper/css';
-// import 'swiper/css/navigation';
-// import 'swiper/css/pagination';
+import { headers } from 'next/headers'; // импортируем headers
+import clsx from 'clsx';
+import Navbar from '@/widgets/navbar';
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 
 // Шрифты
 // const Roboto = localFont({
@@ -21,11 +23,6 @@ import { Toaster } from 'sonner';
 // });
 // ? clsx(Roboto.variable) для body
 
-export const metadata: Metadata = {
-  title: 'Next.js Project',
-  description:
-    'Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis, et',
-};
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -33,12 +30,58 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  
+  const [hideLayout, setHideLayout] = useState(false)
+
+  const currentUrl = usePathname()
+
+  useEffect(() => {
+    setHideLayout(currentUrl.includes('login'));
+  }, []);
+
+  const userRole = 'admin';
+
   return (
     <html lang="ru">
       <head></head>
       <body>
-        <div id="app">{children}</div>
-        <Toaster />
+        <div id="app">
+              <div
+                className={
+                  'md:grid md:grid-cols-9 relative md:gap-x-1 xl:gap-x-2'
+                }>
+                {!hideLayout && (
+                  <div className={'md:col-span-2 md:flex hidden'}>
+                    <div className={'w-full sticky top-0 h-screen'}>
+                      <Navbar userRole={userRole} />
+                    </div>
+                  </div>
+                )}
+                <div
+                  className={clsx(
+                    !hideLayout 
+                      ? 'md:px-10 px-1 pt-20 md:pt-10 md:col-span-7  pb-4  w-full'
+                      : 'col-span-9'
+                  )}>
+                  {children}
+                </div>
+                {/*<img*/}
+                {/*  id={'dr_sara'}*/}
+                {/*  className={*/}
+                {/*    'fixed drop-shadow-2xl bottom-4 right-4 w-[20rem] h-auto cursor-pointer'*/}
+                {/*  }*/}
+                {/*  src={'/images/dr_sara.svg'}*/}
+                {/*/>*/}
+
+                {!hideLayout && (
+                  <div className={'col-span-9 block'}>
+                    {/* <Footer /> */}
+                  </div>
+                )}
+              </div>
+              {/*{!hideLayout && <Footer />}*/}
+            </div>
+        <Toaster richColors />
       </body>
     </html>
   );

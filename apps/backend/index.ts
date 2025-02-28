@@ -1,17 +1,20 @@
-import { Elysia, t } from 'elysia'
+import { Elysia } from 'elysia'
+import { cors } from '@elysiajs/cors'
+import { connectDB } from './db'
+import { createUserController } from './controllers/UserController'
+
+const db = await connectDB()
 
 const app = new Elysia()
-    .get('/', () => 'Hi Elysia Server')
-    .get('/error', () => {
-        throw new Error('Test Elysia Error')
-    })
-    .get('/id/:id', ({ params: { id } }) => id)
-    .post('/mirror', ({ body }) => body, {
-        body: t.Object({
-            id: t.Number(),
-            name: t.String()
-        })
-    })
+    .use(cors({
+        origin: ['http://localhost:3001', 'http://localhost:3000'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+    }))
+    .use(createUserController(db))
     .listen(3000)
+
+console.log('🦊 Сервер запущен на порту 3000')
 
 export type App = typeof app 

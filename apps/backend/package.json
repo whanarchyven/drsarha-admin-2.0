@@ -9,7 +9,14 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "elysia": "^1.1.26"
+    "@elysiajs/cors": "^1.2.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "bcrypt": "^5.1.1",
+    "elysia": "^1.1.26",
+    "jose": "^6.0.8",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.13.1"
   },
   "scripts": {
     "dev": "bun --watch index.ts"

@@ -3,7 +3,7 @@ import { handleError } from '../utils/handleError';
 
 
 export const getHeloPageData = async () => {
-    const data = await eden.index.get()
+    const data = await eden.users.index.get()
     if(data.error) {
         handleError(data.error)
     }
