@@ -66,6 +66,12 @@ export const navLinks: LinkInterface[] = [
   },
   {
     icon: '/icons/users.svg',
+    link: '/subscribers',
+    name: 'Подписчики',
+    roles: ['admin', 'developer'],
+  },
+  {
+    icon: '/icons/users.svg',
     link: '/users',
     name: 'Пользователи',
     roles: ['admin', 'developer'],

@@ -64,7 +64,21 @@ export function createUserController(db: Db) {
                 role: t.Optional(t.String())
             })
         })
-        
+
+        .put('/:id/password', async ({ params: { id }, body }) => {
+            const success = await userService.changePassword(id, body.password);
+            if (!success) {
+                throw new Error('User not found');
+            }
+            return { success: true };
+        }, {
+            params: t.Object({
+                id: t.String()
+            }),
+            body: t.Object({
+                password: t.String()
+            })
+        })
         .delete('/:id', async ({ params: { id } }) => {
             const success = await userService.delete(id);
             if (!success) {

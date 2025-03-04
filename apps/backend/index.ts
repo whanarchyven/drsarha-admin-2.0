@@ -2,7 +2,7 @@ import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { connectDB } from './db'
 import { createUserController } from './controllers/UserController'
-
+import { createExternalApiController } from './controllers/ExternalApiController'
 const db = await connectDB()
 
 const app = new Elysia()
@@ -13,6 +13,7 @@ const app = new Elysia()
         credentials: true
     }))
     .use(createUserController(db))
+    .use(createExternalApiController())
     .listen(3000)
 
 console.log('🦊 Сервер запущен на порту 3000')

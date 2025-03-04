@@ -28,7 +28,7 @@ export class UserService {
         const newUser: User = {
             ...createUserDto,
             password: hashedPassword,
-            role: createUserDto.role || 'user',
+            role: createUserDto.role || 'editor',
             createdAt: now,
             updatedAt: now
         };
@@ -71,5 +71,18 @@ export class UserService {
     async delete(id: string): Promise<boolean> {
         const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
         return result.deletedCount === 1;
+    }
+
+    async changePassword(id: string, password: string): Promise<boolean> {
+        console.log(id, password)
+        const newPassword = await hashPassword(password)
+        const user=await this.collection.findOne({_id:new ObjectId(id)})
+        console.log(user)
+        const result = await this.collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { password: newPassword, updatedAt: new Date() } }
+        );
+        console.log(result)
+        return result.modifiedCount === 1;
     }
 } 
