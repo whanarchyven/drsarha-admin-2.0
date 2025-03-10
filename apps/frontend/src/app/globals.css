@@ -204,3 +204,27 @@ strong {
     @apply bg-background text-foreground;
   }
 }
+
+/* Markdown table styling */
+.markdown-content table {
+  border-spacing: 0 !important;
+  border-collapse: collapse !important;
+  border-color: inherit !important;
+  display: block !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: auto !important;
+}
+
+.markdown-content tbody,
+.markdown-content td,
+.markdown-content tfoot,
+.markdown-content th,
+.markdown-content thead,
+.markdown-content tr {
+  border-color: inherit !important;
+  border-style: solid !important;
+  border-width: 2px !important;
+  padding: 0.5rem;
+}

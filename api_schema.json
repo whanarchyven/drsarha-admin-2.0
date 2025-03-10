@@ -1,0 +1,2958 @@
+{
+  "/token": {
+    "post": {
+      "tags": [
+        "Auth"
+      ],
+      "summary": "Login For Access Token",
+      "description": "Get access token for admin authentication",
+      "operationId": "login_for_access_token_token_post",
+      "requestBody": {
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/Body_login_for_access_token_token_post"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Token"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/admins/me/": {
+    "get": {
+      "tags": [
+        "Auth"
+      ],
+      "summary": "Read Admins Me",
+      "description": "Get current admin information",
+      "operationId": "read_admins_me_admins_me__get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Admin"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ]
+    }
+  },
+  "/articles/": {
+    "post": {
+      "tags": [
+        "Articles"
+      ],
+      "summary": "Create Article",
+      "description": "Create a new article\n\nCreates a new article entry with the specified details.",
+      "operationId": "create_article_articles__post",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ArticleCreate"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Article"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "get": {
+      "tags": [
+        "Articles"
+      ],
+      "summary": "List Articles",
+      "description": "List and search articles with comprehensive filtering options.\n\n## Query Parameters\n* **status**: Filter by publication status (true/false)\n* **search**: Full-text search across title, content, references, and translated titles\n* **skip** & **limit**: Pagination controls\n* **sort_by** & **sort_order**: Sorting controls\n* **start_date** & **end_date**: Date range filtering\n* **category**: Filter by content category\n\n## Response Headers\n* **X-Total-Count**: Total number of matching articles\n* **X-Page-Size**: Number of articles per page\n* **X-Current-Page**: Current page number\n* **X-Total-Pages**: Total number of pages\n\n## Examples\n\n### Basic Search\n```\nGET /articles/?search=cancer\n```\n\n### Search in Both Languages\n```\nGET /articles/?search=cancer OR рак\n```\n\n### Filtered Search\n```\nGET /articles/?status=true&start_date=2024-01-01T00:00:00Z\n```\n\n### Paginated Results\n```\nGET /articles/?skip=20&limit=10&sort_by=createdAt&sort_order=-1\n```",
+      "operationId": "list_articles_articles__get",
+      "parameters": [
+        {
+          "name": "status",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by publication status (true/false)",
+            "title": "Status"
+          },
+          "description": "Filter by publication status (true/false)",
+          "example": "true"
+        },
+        {
+          "name": "search",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Search in title, content, references, and translated titles",
+            "title": "Search"
+          },
+          "description": "Search in title, content, references, and translated titles",
+          "example": "cancer treatment"
+        },
+        {
+          "name": "skip",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of articles to skip for pagination",
+            "default": 0,
+            "title": "Skip"
+          },
+          "description": "Number of articles to skip for pagination",
+          "example": 0
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1,
+            "description": "Maximum number of articles to return",
+            "default": 10,
+            "title": "Limit"
+          },
+          "description": "Maximum number of articles to return",
+          "example": 10
+        },
+        {
+          "name": "sort_by",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Field to sort results by",
+            "enum": [
+              "createdAt",
+              "updatedAt",
+              "title",
+              "publishedDate"
+            ],
+            "default": "updatedAt",
+            "title": "Sort By"
+          },
+          "description": "Field to sort results by"
+        },
+        {
+          "name": "sort_order",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1,
+                "minimum": -1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sort order (1: ascending, -1: descending)",
+            "default": -1,
+            "title": "Sort Order"
+          },
+          "description": "Sort order (1: ascending, -1: descending)"
+        },
+        {
+          "name": "start_date",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter articles created after this date",
+            "title": "Start Date"
+          },
+          "description": "Filter articles created after this date",
+          "example": "2024-01-01T00:00:00Z"
+        },
+        {
+          "name": "end_date",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter articles created before this date",
+            "title": "End Date"
+          },
+          "description": "Filter articles created before this date",
+          "example": "2024-02-01T00:00:00Z"
+        },
+        {
+          "name": "category",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by content category",
+            "default": "articles",
+            "title": "Category"
+          },
+          "description": "Filter by content category",
+          "example": "articles"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Article"
+                },
+                "title": "Response List Articles Articles  Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/articles/{article_id}": {
+    "get": {
+      "tags": [
+        "Articles"
+      ],
+      "summary": "Get Article",
+      "description": "Get article details by ID",
+      "operationId": "get_article_articles__article_id__get",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "article_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Article ID",
+            "title": "Article Id"
+          },
+          "description": "Article ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Article"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "patch": {
+      "tags": [
+        "Articles"
+      ],
+      "summary": "Update Article",
+      "description": "Update article information\n\nUpdates an existing article with new data. Can update any of the article fields.",
+      "operationId": "update_article_articles__article_id__patch",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "article_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Article ID",
+            "title": "Article Id"
+          },
+          "description": "Article ID"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ArticleUpdate"
+                }
+              ],
+              "description": "Article update data",
+              "title": "Article Update"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Article"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "delete": {
+      "tags": [
+        "Articles"
+      ],
+      "summary": "Delete Article",
+      "description": "Delete article by ID",
+      "operationId": "delete_article_articles__article_id__delete",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "article_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Article ID",
+            "title": "Article Id"
+          },
+          "description": "Article ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/articles/translate": {
+    "post": {
+      "tags": [
+        "Translation"
+      ],
+      "summary": "Translate Article",
+      "description": "Request article translation by providing one of:\n- DOI\n- Article URL\n- Article name\n\nReturns a task ID that can be used to check translation status.",
+      "operationId": "translate_article_articles_translate_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TranslationRequest"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslationResponse"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/articles/translate/{task_id}": {
+    "get": {
+      "tags": [
+        "Translation"
+      ],
+      "summary": "Get Translation Status",
+      "description": "Check translation status by task ID",
+      "operationId": "get_translation_status_articles_translate__task_id__get",
+      "parameters": [
+        {
+          "name": "task_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Translation task ID",
+            "title": "Task Id"
+          },
+          "description": "Translation task ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslationResponse"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/news/": {
+    "post": {
+      "tags": [
+        "News"
+      ],
+      "summary": "Create News",
+      "description": "Create a new news item\n\nCreates a news entry with the specified details.",
+      "operationId": "create_news_news__post",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/NewsCreate"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/News"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "get": {
+      "tags": [
+        "News"
+      ],
+      "summary": "List News",
+      "description": "List and search news with comprehensive filtering options.\n\n## Query Parameters\n* **status**: Filter by publication status (true/false)\n* **search**: Search in title, content, and translations\n* **skip** & **limit**: Pagination controls\n* **sort_by** & **sort_order**: Sorting controls\n* **start_date** & **end_date**: Date range filtering\n* **subcategory**: Filter by news subcategory",
+      "operationId": "list_news_news__get",
+      "parameters": [
+        {
+          "name": "status",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by publication status (true/false)",
+            "title": "Status"
+          },
+          "description": "Filter by publication status (true/false)",
+          "example": "true"
+        },
+        {
+          "name": "search",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Search in title, content, and translations",
+            "title": "Search"
+          },
+          "description": "Search in title, content, and translations",
+          "example": "medical discovery"
+        },
+        {
+          "name": "skip",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of news items to skip for pagination",
+            "default": 0,
+            "title": "Skip"
+          },
+          "description": "Number of news items to skip for pagination",
+          "example": 0
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1,
+            "description": "Maximum number of news items to return",
+            "default": 10,
+            "title": "Limit"
+          },
+          "description": "Maximum number of news items to return",
+          "example": 10
+        },
+        {
+          "name": "sort_by",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Field to sort results by",
+            "enum": [
+              "createdAt",
+              "updatedAt",
+              "title",
+              "publishedDate"
+            ],
+            "default": "updatedAt",
+            "title": "Sort By"
+          },
+          "description": "Field to sort results by"
+        },
+        {
+          "name": "sort_order",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1,
+                "minimum": -1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sort order (1: ascending, -1: descending)",
+            "default": -1,
+            "title": "Sort Order"
+          },
+          "description": "Sort order (1: ascending, -1: descending)"
+        },
+        {
+          "name": "start_date",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter news created after this date",
+            "title": "Start Date"
+          },
+          "description": "Filter news created after this date",
+          "example": "2024-01-01T00:00:00Z"
+        },
+        {
+          "name": "end_date",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter news created before this date",
+            "title": "End Date"
+          },
+          "description": "Filter news created before this date",
+          "example": "2024-02-01T00:00:00Z"
+        },
+        {
+          "name": "subcategory",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by subcategory",
+            "title": "Subcategory"
+          },
+          "description": "Filter by subcategory",
+          "example": "Детская дерматология"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/News"
+                },
+                "title": "Response List News News  Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/news/{news_id}": {
+    "get": {
+      "tags": [
+        "News"
+      ],
+      "summary": "Get News",
+      "description": "Get news details by ID",
+      "operationId": "get_news_news__news_id__get",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "news_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "News ID",
+            "title": "News Id"
+          },
+          "description": "News ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/News"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "patch": {
+      "tags": [
+        "News"
+      ],
+      "summary": "Update News",
+      "description": "Update news information\n\nUpdates an existing news item with new data. Can update any of the news fields.",
+      "operationId": "update_news_news__news_id__patch",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "news_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "News ID",
+            "title": "News Id"
+          },
+          "description": "News ID"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/NewsUpdate"
+                }
+              ],
+              "description": "News update data",
+              "title": "News Update"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/News"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "delete": {
+      "tags": [
+        "News"
+      ],
+      "summary": "Delete News",
+      "description": "Delete news by ID",
+      "operationId": "delete_news_news__news_id__delete",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        },
+        {
+          "APIKeyHeader": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "news_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "News ID",
+            "title": "News Id"
+          },
+          "description": "News ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/health": {
+    "get": {
+      "tags": [
+        "System"
+      ],
+      "summary": "Health Check",
+      "description": "Health check endpoint to verify the API is running and can connect to MongoDB",
+      "operationId": "health_check_health_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}
+{
+  "Admin": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "title": "Username"
+      },
+      "email": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Email"
+      },
+      "full_name": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Full Name"
+      },
+      "disabled": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Disabled"
+      }
+    },
+    "type": "object",
+    "required": [
+      "username",
+      "email",
+      "full_name",
+      "disabled"
+    ],
+    "title": "Admin"
+  },
+  "Article": {
+    "properties": {
+      "title": {
+        "type": "string",
+        "title": "Title",
+        "description": "Article title",
+        "example": "Topical Application of Aprepitant Inhibits Erlotinib-induced Facial Dermatitis/Hair Loss"
+      },
+      "content": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Content",
+        "description": "Article content in markdown format"
+      },
+      "articleUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Articleurl",
+        "description": "Original article URL",
+        "example": "https://www.dermatoljournal.com/articles/example-article.html"
+      },
+      "mainUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Mainurl",
+        "description": "Main URL of the journal/source website",
+        "example": "https://www.dermatoljournal.com"
+      },
+      "authors": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "title": "Authors",
+        "description": "List of article authors",
+        "default": [],
+        "example": [
+          "John Smith",
+          "Jane Doe"
+        ]
+      },
+      "doi": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Doi",
+        "description": "Digital Object Identifier",
+        "example": "10.29245/2767-5092/2024/1.1174"
+      },
+      "publishedDate": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Publisheddate",
+        "description": "Date when the article was published"
+      },
+      "references": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "title": "References",
+        "description": "Article references",
+        "default": []
+      },
+      "fullHtml": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Fullhtml",
+        "description": "Full HTML of the article page"
+      },
+      "articleHtml": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Articlehtml",
+        "description": "HTML of only the article content"
+      },
+      "pdf_text": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Pdf Text",
+        "description": "Article content from PDF"
+      },
+      "parserIteration": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Parseriteration",
+        "description": "Parser iteration number"
+      },
+      "parserName": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Parsername",
+        "description": "Name of the parser used to extract the article"
+      },
+      "isPublished": {
+        "type": "boolean",
+        "title": "Ispublished",
+        "description": "Whether the article is published",
+        "default": false
+      },
+      "isIndexed": {
+        "type": "boolean",
+        "title": "Isindexed",
+        "description": "Whether the article is indexed",
+        "default": false
+      },
+      "isPDFIndexed": {
+        "type": "boolean",
+        "title": "Ispdfindexed",
+        "description": "Whether the PDF is indexed",
+        "default": false
+      },
+      "hasTranslation": {
+        "type": "boolean",
+        "title": "Hastranslation",
+        "description": "Whether the article has been translated",
+        "default": false
+      },
+      "hasClinicalCase": {
+        "type": "boolean",
+        "title": "Hasclinicalcase",
+        "description": "Whether the article contains a clinical case",
+        "default": false
+      },
+      "hasDevComment": {
+        "type": "boolean",
+        "title": "Hasdevcomment",
+        "description": "Whether the article has developer comments",
+        "default": false
+      },
+      "category": {
+        "type": "string",
+        "title": "Category",
+        "description": "Article category",
+        "default": "articles"
+      },
+      "summary_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Ai",
+        "description": "AI-generated summary"
+      },
+      "title_translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Ai",
+        "description": "AI-translated article title"
+      },
+      "translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Ai",
+        "description": "AI-translated article content"
+      },
+      "summary_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Human",
+        "description": "Human-created summary"
+      },
+      "title_translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Human",
+        "description": "Human-translated article title"
+      },
+      "translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Human",
+        "description": "Human-translated article content"
+      },
+      "references_human": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "References Human",
+        "description": "Human-translated references"
+      },
+      "tokenCount": {
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Tokencount",
+        "description": "Token count information"
+      },
+      "id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Id",
+        "description": "Article unique identifier"
+      },
+      "_id": {
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": " Id",
+        "description": "MongoDB ObjectId"
+      },
+      "createdAt": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Createdat",
+        "description": "Article creation timestamp"
+      },
+      "updatedAt": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Updatedat",
+        "description": "Article last update timestamp"
+      },
+      "translation_status": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/TranslationStatus"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Translation status"
+      }
+    },
+    "type": "object",
+    "required": [
+      "title",
+      "content",
+      "articleUrl",
+      "mainUrl",
+      "authors",
+      "doi",
+      "publishedDate",
+      "references",
+      "fullHtml",
+      "articleHtml",
+      "pdf_text",
+      "parserIteration",
+      "parserName",
+      "isPublished",
+      "isIndexed",
+      "isPDFIndexed",
+      "hasTranslation",
+      "hasClinicalCase",
+      "hasDevComment",
+      "category",
+      "summary_ai",
+      "title_translation_ai",
+      "translation_ai",
+      "summary_human",
+      "title_translation_human",
+      "translation_human",
+      "references_human",
+      "tokenCount",
+      "id",
+      "_id",
+      "createdAt",
+      "updatedAt",
+      "translation_status"
+    ],
+    "title": "Article",
+    "example": {
+      "articleUrl": "https://www.dermatoljournal.com/articles/example-article.html",
+      "authors": [
+        "Iu Tong Mak",
+        "Jay H. Kramer"
+      ],
+      "category": "articles",
+      "doi": "10.29245/2767-5092/2024/1.1174",
+      "isIndexed": true,
+      "isPublished": false,
+      "mainUrl": "https://www.dermatoljournal.com",
+      "publishedDate": "2024-01-29T00:00:00.000Z",
+      "title": "Topical Application of Aprepitant Inhibits Erlotinib-induced Facial Dermatitis/Hair Loss"
+    }
+  },
+  "ArticleCreate": {
+    "properties": {
+      "title": {
+        "type": "string",
+        "title": "Title",
+        "description": "Article title",
+        "example": "Topical Application of Aprepitant Inhibits Erlotinib-induced Facial Dermatitis/Hair Loss"
+      },
+      "content": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Content",
+        "description": "Article content in markdown format"
+      },
+      "articleUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Articleurl",
+        "description": "Original article URL",
+        "example": "https://www.dermatoljournal.com/articles/example-article.html"
+      },
+      "mainUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Mainurl",
+        "description": "Main URL of the journal/source website",
+        "example": "https://www.dermatoljournal.com"
+      },
+      "authors": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "title": "Authors",
+        "description": "List of article authors",
+        "default": [],
+        "example": [
+          "John Smith",
+          "Jane Doe"
+        ]
+      },
+      "doi": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Doi",
+        "description": "Digital Object Identifier",
+        "example": "10.29245/2767-5092/2024/1.1174"
+      },
+      "publishedDate": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Publisheddate",
+        "description": "Date when the article was published"
+      },
+      "references": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "title": "References",
+        "description": "Article references",
+        "default": []
+      },
+      "fullHtml": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Fullhtml",
+        "description": "Full HTML of the article page"
+      },
+      "articleHtml": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Articlehtml",
+        "description": "HTML of only the article content"
+      },
+      "pdf_text": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Pdf Text",
+        "description": "Article content from PDF"
+      },
+      "parserIteration": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Parseriteration",
+        "description": "Parser iteration number"
+      },
+      "parserName": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Parsername",
+        "description": "Name of the parser used to extract the article"
+      },
+      "isPublished": {
+        "type": "boolean",
+        "title": "Ispublished",
+        "description": "Whether the article is published",
+        "default": false
+      },
+      "isIndexed": {
+        "type": "boolean",
+        "title": "Isindexed",
+        "description": "Whether the article is indexed",
+        "default": false
+      },
+      "isPDFIndexed": {
+        "type": "boolean",
+        "title": "Ispdfindexed",
+        "description": "Whether the PDF is indexed",
+        "default": false
+      },
+      "hasTranslation": {
+        "type": "boolean",
+        "title": "Hastranslation",
+        "description": "Whether the article has been translated",
+        "default": false
+      },
+      "hasClinicalCase": {
+        "type": "boolean",
+        "title": "Hasclinicalcase",
+        "description": "Whether the article contains a clinical case",
+        "default": false
+      },
+      "hasDevComment": {
+        "type": "boolean",
+        "title": "Hasdevcomment",
+        "description": "Whether the article has developer comments",
+        "default": false
+      },
+      "category": {
+        "type": "string",
+        "title": "Category",
+        "description": "Article category",
+        "default": "articles"
+      },
+      "summary_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Ai",
+        "description": "AI-generated summary"
+      },
+      "title_translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Ai",
+        "description": "AI-translated article title"
+      },
+      "translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Ai",
+        "description": "AI-translated article content"
+      },
+      "summary_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Human",
+        "description": "Human-created summary"
+      },
+      "title_translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Human",
+        "description": "Human-translated article title"
+      },
+      "translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Human",
+        "description": "Human-translated article content"
+      },
+      "references_human": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "References Human",
+        "description": "Human-translated references"
+      },
+      "tokenCount": {
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Tokencount",
+        "description": "Token count information"
+      }
+    },
+    "type": "object",
+    "required": [
+      "title"
+    ],
+    "title": "ArticleCreate",
+    "example": {
+      "articleUrl": "https://www.dermatoljournal.com/articles/example-article.html",
+      "authors": [
+        "Iu Tong Mak",
+        "Jay H. Kramer"
+      ],
+      "category": "articles",
+      "doi": "10.29245/2767-5092/2024/1.1174",
+      "isIndexed": true,
+      "isPublished": false,
+      "mainUrl": "https://www.dermatoljournal.com",
+      "publishedDate": "2024-01-29T00:00:00.000Z",
+      "title": "Topical Application of Aprepitant Inhibits Erlotinib-induced Facial Dermatitis/Hair Loss"
+    }
+  },
+  "ArticleUpdate": {
+    "properties": {
+      "title": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title",
+        "description": "Article title"
+      },
+      "content": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Content",
+        "description": "Article content"
+      },
+      "articleUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Articleurl",
+        "description": "Article URL"
+      },
+      "authors": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Authors",
+        "description": "Article authors"
+      },
+      "doi": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Doi",
+        "description": "Article DOI"
+      },
+      "isPublished": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Ispublished",
+        "description": "Publication status"
+      },
+      "isIndexed": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Isindexed",
+        "description": "Indexing status"
+      },
+      "isPDFIndexed": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Ispdfindexed",
+        "description": "PDF indexing status"
+      },
+      "hasTranslation": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Hastranslation",
+        "description": "Translation status"
+      },
+      "hasClinicalCase": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Hasclinicalcase",
+        "description": "Whether the article contains a clinical case"
+      },
+      "hasDevComment": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Hasdevcomment",
+        "description": "Whether the article has developer comments"
+      },
+      "summary_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Ai",
+        "description": "AI-generated summary"
+      },
+      "title_translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Ai",
+        "description": "AI-translated title"
+      },
+      "translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Ai",
+        "description": "AI-translated content"
+      },
+      "summary_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Human",
+        "description": "Human-created summary"
+      },
+      "title_translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Human",
+        "description": "Human-translated title"
+      },
+      "translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Human",
+        "description": "Human-translated content"
+      },
+      "references_human": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "References Human",
+        "description": "Human-translated references"
+      }
+    },
+    "type": "object",
+    "title": "ArticleUpdate"
+  },
+  "Body_login_for_access_token_token_post": {
+    "properties": {
+      "grant_type": {
+        "anyOf": [
+          {
+            "type": "string",
+            "pattern": "password"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Grant Type"
+      },
+      "username": {
+        "type": "string",
+        "title": "Username"
+      },
+      "password": {
+        "type": "string",
+        "title": "Password"
+      },
+      "scope": {
+        "type": "string",
+        "title": "Scope",
+        "default": ""
+      },
+      "client_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Client Id"
+      },
+      "client_secret": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Client Secret"
+      }
+    },
+    "type": "object",
+    "required": [
+      "username",
+      "password"
+    ],
+    "title": "Body_login_for_access_token_token_post"
+  },
+  "HTTPValidationError": {
+    "properties": {
+      "detail": {
+        "items": {
+          "$ref": "#/components/schemas/ValidationError"
+        },
+        "type": "array",
+        "title": "Detail"
+      }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+  },
+  "News": {
+    "properties": {
+      "title": {
+        "type": "string",
+        "title": "Title",
+        "description": "News title",
+        "example": "Original news title"
+      },
+      "content": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Content",
+        "description": "News content"
+      },
+      "articleUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Articleurl",
+        "description": "Article URL",
+        "example": "https://www.mdedge.com/dermatology/article/example"
+      },
+      "mainUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Mainurl",
+        "description": "Main URL of the source website",
+        "example": "https://www.mdedge.com/dermatology"
+      },
+      "publishedDate": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Publisheddate",
+        "description": "Date when the news was published"
+      },
+      "isIndexed": {
+        "type": "boolean",
+        "title": "Isindexed",
+        "description": "Whether the news is indexed",
+        "default": false
+      },
+      "isPublished": {
+        "type": "boolean",
+        "title": "Ispublished",
+        "description": "Whether the news is published",
+        "default": false
+      },
+      "hasTranslation": {
+        "type": "boolean",
+        "title": "Hastranslation",
+        "description": "Whether the news has been translated",
+        "default": false
+      },
+      "hasDevComment": {
+        "type": "boolean",
+        "title": "Hasdevcomment",
+        "description": "Whether the news has developer comments",
+        "default": false
+      },
+      "category": {
+        "type": "string",
+        "title": "Category",
+        "description": "Content category",
+        "default": "news"
+      },
+      "subcategory": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Subcategory",
+        "description": "Content subcategory",
+        "example": "Детская дерматология"
+      },
+      "tokenCount": {
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Tokencount",
+        "description": "Token count information",
+        "example": {
+          "contentTokenCount": 1399,
+          "pdfTokenCount": 0
+        }
+      },
+      "summary_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Ai",
+        "description": "AI-generated summary"
+      },
+      "title_translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Ai",
+        "description": "AI-translated title",
+        "example": "Диагностика и лечение демодекоза: ключевые аспекты и дифференциальная диагностика"
+      },
+      "translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Ai",
+        "description": "AI-translated content"
+      },
+      "summary_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Human",
+        "description": "Human-created summary"
+      },
+      "title_translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Human",
+        "description": "Human-translated title"
+      },
+      "translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Human",
+        "description": "Human-translated content"
+      },
+      "references_human": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "References Human",
+        "description": "Human-translated references"
+      },
+      "id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Id",
+        "description": "News unique identifier"
+      },
+      "_id": {
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": " Id",
+        "description": "MongoDB ObjectId"
+      },
+      "createdAt": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Createdat",
+        "description": "News creation timestamp"
+      },
+      "updatedAt": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Updatedat",
+        "description": "News last update timestamp"
+      }
+    },
+    "type": "object",
+    "required": [
+      "title",
+      "content",
+      "articleUrl",
+      "mainUrl",
+      "publishedDate",
+      "isIndexed",
+      "isPublished",
+      "hasTranslation",
+      "hasDevComment",
+      "category",
+      "subcategory",
+      "tokenCount",
+      "summary_ai",
+      "title_translation_ai",
+      "translation_ai",
+      "summary_human",
+      "title_translation_human",
+      "translation_human",
+      "references_human",
+      "id",
+      "_id",
+      "createdAt",
+      "updatedAt"
+    ],
+    "title": "News",
+    "example": {
+      "articleUrl": "https://www.mdedge.com/dermatology/article/example",
+      "category": "news",
+      "isIndexed": true,
+      "mainUrl": "https://www.mdedge.com/dermatology",
+      "publishedDate": "2024-06-13T00:00:00.000Z",
+      "subcategory": "Детская дерматология",
+      "title": "Original news title",
+      "title_translation_ai": "Диагностика и лечение демодекоза: ключевые аспекты и дифференциальная диагностика",
+      "tokenCount": {
+        "contentTokenCount": 1399,
+        "pdfTokenCount": 0
+      }
+    }
+  },
+  "NewsCreate": {
+    "properties": {
+      "title": {
+        "type": "string",
+        "title": "Title",
+        "description": "News title",
+        "example": "Original news title"
+      },
+      "content": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Content",
+        "description": "News content"
+      },
+      "articleUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Articleurl",
+        "description": "Article URL",
+        "example": "https://www.mdedge.com/dermatology/article/example"
+      },
+      "mainUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Mainurl",
+        "description": "Main URL of the source website",
+        "example": "https://www.mdedge.com/dermatology"
+      },
+      "publishedDate": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Publisheddate",
+        "description": "Date when the news was published"
+      },
+      "isIndexed": {
+        "type": "boolean",
+        "title": "Isindexed",
+        "description": "Whether the news is indexed",
+        "default": false
+      },
+      "isPublished": {
+        "type": "boolean",
+        "title": "Ispublished",
+        "description": "Whether the news is published",
+        "default": false
+      },
+      "hasTranslation": {
+        "type": "boolean",
+        "title": "Hastranslation",
+        "description": "Whether the news has been translated",
+        "default": false
+      },
+      "hasDevComment": {
+        "type": "boolean",
+        "title": "Hasdevcomment",
+        "description": "Whether the news has developer comments",
+        "default": false
+      },
+      "category": {
+        "type": "string",
+        "title": "Category",
+        "description": "Content category",
+        "default": "news"
+      },
+      "subcategory": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Subcategory",
+        "description": "Content subcategory",
+        "example": "Детская дерматология"
+      },
+      "tokenCount": {
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Tokencount",
+        "description": "Token count information",
+        "example": {
+          "contentTokenCount": 1399,
+          "pdfTokenCount": 0
+        }
+      },
+      "summary_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Ai",
+        "description": "AI-generated summary"
+      },
+      "title_translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Ai",
+        "description": "AI-translated title",
+        "example": "Диагностика и лечение демодекоза: ключевые аспекты и дифференциальная диагностика"
+      },
+      "translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Ai",
+        "description": "AI-translated content"
+      },
+      "summary_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Human",
+        "description": "Human-created summary"
+      },
+      "title_translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Human",
+        "description": "Human-translated title"
+      },
+      "translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Human",
+        "description": "Human-translated content"
+      },
+      "references_human": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "References Human",
+        "description": "Human-translated references"
+      }
+    },
+    "type": "object",
+    "required": [
+      "title"
+    ],
+    "title": "NewsCreate",
+    "example": {
+      "articleUrl": "https://www.mdedge.com/dermatology/article/example",
+      "category": "news",
+      "isIndexed": true,
+      "mainUrl": "https://www.mdedge.com/dermatology",
+      "publishedDate": "2024-06-13T00:00:00.000Z",
+      "subcategory": "Детская дерматология",
+      "title": "Original news title",
+      "title_translation_ai": "Диагностика и лечение демодекоза: ключевые аспекты и дифференциальная диагностика",
+      "tokenCount": {
+        "contentTokenCount": 1399,
+        "pdfTokenCount": 0
+      }
+    }
+  },
+  "NewsUpdate": {
+    "properties": {
+      "title": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title",
+        "description": "News title"
+      },
+      "content": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Content",
+        "description": "News content"
+      },
+      "articleUrl": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Articleurl",
+        "description": "Article URL"
+      },
+      "isPublished": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Ispublished",
+        "description": "Publication status"
+      },
+      "isIndexed": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Isindexed",
+        "description": "Indexing status"
+      },
+      "hasTranslation": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Hastranslation",
+        "description": "Translation status"
+      },
+      "hasDevComment": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Hasdevcomment",
+        "description": "Whether the news has developer comments"
+      },
+      "subcategory": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Subcategory",
+        "description": "News subcategory"
+      },
+      "summary_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Ai",
+        "description": "AI-generated summary"
+      },
+      "title_translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Ai",
+        "description": "AI-translated title"
+      },
+      "translation_ai": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Ai",
+        "description": "AI-translated content"
+      },
+      "summary_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Summary Human",
+        "description": "Human-created summary"
+      },
+      "title_translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Title Translation Human",
+        "description": "Human-translated title"
+      },
+      "translation_human": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Translation Human",
+        "description": "Human-translated content"
+      },
+      "references_human": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "References Human",
+        "description": "Human-translated references"
+      }
+    },
+    "type": "object",
+    "title": "NewsUpdate"
+  },
+  "Token": {
+    "properties": {
+      "access_token": {
+        "type": "string",
+        "title": "Access Token"
+      },
+      "token_type": {
+        "type": "string",
+        "title": "Token Type"
+      }
+    },
+    "type": "object",
+    "required": [
+      "access_token",
+      "token_type"
+    ],
+    "title": "Token"
+  },
+  "TranslationRequest": {
+    "properties": {
+      "identifier": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Identifier",
+        "description": "Article DOI, URL, or name"
+      },
+      "type": {
+        "type": "string",
+        "title": "Type",
+        "description": "Type of identifier (doi, url, name)"
+      }
+    },
+    "type": "object",
+    "required": [
+      "type"
+    ],
+    "title": "TranslationRequest"
+  },
+  "TranslationResponse": {
+    "properties": {
+      "task_id": {
+        "type": "string",
+        "title": "Task Id",
+        "description": "Translation task ID"
+      },
+      "status": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TranslationStatus"
+          }
+        ],
+        "description": "Translation status"
+      }
+    },
+    "type": "object",
+    "required": [
+      "task_id",
+      "status"
+    ],
+    "title": "TranslationResponse"
+  },
+  "TranslationStatus": {
+    "type": "string",
+    "enum": [
+      "pending",
+      "in_progress",
+      "completed",
+      "failed"
+    ],
+    "title": "TranslationStatus",
+    "description": "Translation process status\n\n* pending: Translation request received\n* in_progress: Translation is being processed\n* completed: Translation is finished\n* failed: Translation process failed"
+  },
+  "ValidationError": {
+    "properties": {
+      "loc": {
+        "items": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "type": "array",
+        "title": "Location"
+      },
+      "msg": {
+        "type": "string",
+        "title": "Message"
+      },
+      "type": {
+        "type": "string",
+        "title": "Error Type"
+      }
+    },
+    "type": "object",
+    "required": [
+      "loc",
+      "msg",
+      "type"
+    ],
+    "title": "ValidationError"
+  }
+}

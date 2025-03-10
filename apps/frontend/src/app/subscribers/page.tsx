@@ -16,6 +16,10 @@ import { SubscriptionRenewalModal } from "@/components/subscription-renewal-moda
 import { renewSubscription } from "@/shared/api/subscribers/renewSubscription"
 import { toast } from "sonner"
 import { ConfirmationDialog } from "@/shared/ui/confirmation-dialog"
+
+import { changePassword } from "@/shared/api/users/changePassword"
+import { SubscriptionPasswordChangeModal } from "@/components/subscription-password-change-modal"
+
 // Mock data for subscribers
 
 
@@ -34,6 +38,9 @@ export default function SubscribersPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false)
 
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false)
+  const [isPasswordModalOpen,setIsPasswordModalOpen]=useState(false)
+
   // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams()
@@ -41,10 +48,15 @@ export default function SubscribersPage() {
     if (tariff) params.set("tariff", tariff)
     params.set("page", currentPage.toString())
 
-    const url = `${window.location.pathname}?${params.toString()}`
-    router.push(url, { scroll: false })
+    // Проверяем, что URL действительно изменился, чтобы избежать лишних обновлений
+    const newUrl = `${window.location.pathname}?${params.toString()}`
+    const currentUrl = `${window.location.pathname}?${searchParams.toString()}`
     
-  }, [search, tariff, currentPage, router])
+    if (newUrl !== currentUrl) {
+      router.push(newUrl, { scroll: false })
+    }
+    
+  }, [search, tariff, currentPage, router, searchParams])
 
   const handleOpenDetails = (subscriber: Subscriber) => {
     setSelectedSubscriber(subscriber)
@@ -61,6 +73,11 @@ export default function SubscribersPage() {
     setIsRenewalModalOpen(true)
   }
 
+  const openPassModal=(subscriber:Subscriber)=>{
+    setSelectedSubscriber(subscriber)
+    setIsPasswordModalOpen(true)
+  }
+
   const handleBanUser = (subscriber: Subscriber) => {
     setSelectedSubscriber(subscriber)
     setIsConfirmationModalOpen(true)
@@ -71,12 +88,15 @@ export default function SubscribersPage() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
+  
+
   // Используем данные, полученные с сервера, вместо локальной пагинации
   const [totalPages, setTotalPages] = useState(1)
   const [currentItems, setCurrentItems] = useState<Subscriber[]>([])
 
   const fetchSubscribers=async()=>{
     getAllAnkets(currentPage, itemsPerPage, search, tariff).then((res) => {
+      console.log(res,"RES")
       setSubscribers(res.users || [])
       setCurrentItems(res.users || [])
       setTotalPages(res.pagination.totalPages || 1)
@@ -101,7 +121,21 @@ export default function SubscribersPage() {
     console.log(renewal,"RENEWAL")
   }
 
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false)
+  const handleChangePassword=async(password:string)=>{
+    console.log(password, selectedSubscriber)
+    if(selectedSubscriber){
+      const result=await changePassword(selectedSubscriber?._id,password)
+      console.log(result)
+      if(result?.data.message){
+        toast.success('Пароль успешно изменён')
+      }
+      else{
+        toast.error('Ошибка при смене пароля')
+      }
+    }
+  }
+
+  
 
   return (
     <div className="">
@@ -139,7 +173,7 @@ export default function SubscribersPage() {
             onOpenDetails={handleOpenDetails}
             onOpenEdit={handleOpenEdit}
             onUpdateSubscription={handleUpdateSubscription}
-            onBanUser={handleBanUser}
+            onBanUser={handleBanUser} onPasswordChange={openPassModal}
           />
         ))}
       </div>
@@ -194,6 +228,7 @@ export default function SubscribersPage() {
             type="destructive"
             title="Заблокировать"
           />
+          <SubscriptionPasswordChangeModal onPasswordChange={handleChangePassword} onClose={()=>{setIsPasswordModalOpen(false)}} isOpen={isPasswordModalOpen} />
         </>
       )}
     </div>

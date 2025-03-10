@@ -3,7 +3,7 @@ import { toast } from "sonner"
 
 export const changePassword = async (id: string, password: string) => {
     try{
-        const newPassword = await eden.users({id}).password.put({password})
+        const newPassword = await eden["main-backend"]["reset-pass"]({id}).put({password})
         toast.success('Пароль успешно изменен')
         return newPassword
     }

@@ -157,5 +157,17 @@ export function createExternalApiController() {
         plan: t.String()
       })
     })
+    .put('/reset-pass/:id',async({params: { id},body})=>{
+      try {
+        const data = await externalApiService.put(`/reset-pass/${id}`,body,{
+          headers: {
+            'Authorization': authHeader
+          }
+        })  ;
+        return data;
+      } catch (error) {
+        throw new Error(`Ошибка при смене пароля: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    })
     ; 
 }

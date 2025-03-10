@@ -3,9 +3,12 @@ import { cors } from '@elysiajs/cors'
 import { connectDB } from './db'
 import { createUserController } from './controllers/UserController'
 import { createExternalApiController } from './controllers/ExternalApiController'
+import { createArticlesApiController } from './controllers/ArticlesApiController'
 const db = await connectDB()
 
-const app = new Elysia()
+const app = new Elysia({
+
+})
     .use(cors({
         origin: ['http://localhost:3001', 'http://localhost:3000'],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -14,7 +17,11 @@ const app = new Elysia()
     }))
     .use(createUserController(db))
     .use(createExternalApiController())
-    .listen(3000)
+    .use(createArticlesApiController())
+    .listen({
+        idleTimeout: 60,
+        port: 3000
+    })
 
 console.log('🦊 Сервер запущен на порту 3000')
 

@@ -18,6 +18,7 @@ export const getAllAnkets = async (page: number, limit: number, search: string, 
       search
     } as GetAllAnketsQuery
   })
+  console.log(response.data,"response.data")
 
   return response.data
 }

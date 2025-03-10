@@ -10,6 +10,7 @@ export const login = async (email: string, password: string) => {
         toast.error(data.error.value as string)
         return null;
     }
+    console.log(data.data)
     
     // Устанавливаем куки на клиенте
     Cookies.set('authToken', data.data?.token as string, {

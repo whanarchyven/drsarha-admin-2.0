@@ -12,7 +12,8 @@ interface SubscriberCardProps {
   onOpenDetails: (subscriber: Subscriber) => void
   onOpenEdit: (subscriber: Subscriber) => void
   onUpdateSubscription: (subscriber: Subscriber) => void
-  onBanUser: (subscriber: Subscriber) => void
+  onBanUser: (subscriber: Subscriber) => void,
+  onPasswordChange:(subscriber: Subscriber)=>void
 }
 
 export function SubscriberCard({
@@ -20,7 +21,7 @@ export function SubscriberCard({
   onOpenDetails,
   onOpenEdit,
   onUpdateSubscription,
-  onBanUser,
+  onBanUser, onPasswordChange
 }: SubscriberCardProps) {
   const getTariffBadgeColor = (tariff: string) => {
     switch (tariff) {
@@ -40,7 +41,7 @@ export function SubscriberCard({
     return date.toLocaleDateString("ru-RU")
   }
 
-  const tariff = new Date(subscriber.subscribeTill) > new Date() ? "pro" : "free"
+  const tariff = new Date(subscriber.subscribeTill) > new Date() ? subscriber.tariff : "free"
 
   return (
     <Card className="overflow-hidden">
@@ -79,7 +80,7 @@ export function SubscriberCard({
             <PencilIcon className="w-4 h-4" />
           Редактировать
         </Button>
-        <Button className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white" variant="outline" size="sm" onClick={() => onBanUser(subscriber._id)}>
+        <Button className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white" variant="outline" size="sm" onClick={() => onPasswordChange(subscriber)}>
           <LockIcon className="w-4 h-4" />
           Сменить пароль
         </Button>
