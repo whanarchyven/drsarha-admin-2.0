@@ -6,7 +6,7 @@ const authHeader = process.env.ADMIN_ID
 
 export function createExternalApiController() {
   // Создаем экземпляр сервиса для работы с внешним API
-  const externalApiService = new AxiosApiService('http://localhost:3003');
+  const externalApiService = new AxiosApiService('http://localhost:3000');
   
   return new Elysia({ prefix: '/main-backend' })
     // Пример прокси-запроса GET

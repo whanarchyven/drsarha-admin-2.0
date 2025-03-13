@@ -39,6 +39,7 @@ export class UserService {
 
     async login(loginDto: LoginDto): Promise<{ user: Omit<User, 'password'>, token: string } | null> {
         const user = await this.findByEmail(loginDto.email);
+        console.log(user,"USER",loginDto.password)
         if (!user) return null;
 
         const isPasswordValid = await comparePasswords(loginDto.password, user.password);
@@ -74,7 +75,7 @@ export class UserService {
     }
 
     async changePassword(id: string, password: string): Promise<boolean> {
-        console.log(id, password)
+        console.log(id, password,"Change password")
         const newPassword = await hashPassword(password)
         const user=await this.collection.findOne({_id:new ObjectId(id)})
         console.log(user)

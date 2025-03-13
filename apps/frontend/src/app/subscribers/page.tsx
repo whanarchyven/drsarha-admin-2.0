@@ -1,141 +1,144 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { SubscriberDetailsModal } from "@/components/subscriber-details-modal"
-import { SubscriberEditModal } from "@/components/subscriber-edit-modal"
-import { SubscriberCard } from "@/entities/Subscriber/ui"
-import { Pagination } from "@/shared/ui/pagination"
-import { Subscriber } from "@/entities/Subscriber/model/types"
-import { getAllAnkets } from "@/shared/api/subscribers/getAllAnkets"
-import { editUser } from "@/shared/api/subscribers/editUser"
-import { banUser } from "@/shared/api/subscribers/banUser" 
-import { SubscriptionRenewalModal } from "@/components/subscription-renewal-modal"
-import { renewSubscription } from "@/shared/api/subscribers/renewSubscription"
-import { toast } from "sonner"
-import { ConfirmationDialog } from "@/shared/ui/confirmation-dialog"
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { SubscriberDetailsModal } from '@/components/subscriber-details-modal';
+import { SubscriberEditModal } from '@/components/subscriber-edit-modal';
+import { SubscriberCard } from '@/entities/Subscriber/ui';
+import { Pagination } from '@/shared/ui/pagination';
+import { Subscriber } from '@/entities/Subscriber/model/types';
+import { getAllAnkets } from '@/shared/api/subscribers/getAllAnkets';
+import { editUser } from '@/shared/api/subscribers/editUser';
+import { banUser } from '@/shared/api/subscribers/banUser';
+import { SubscriptionRenewalModal } from '@/components/subscription-renewal-modal';
+import { renewSubscription } from '@/shared/api/subscribers/renewSubscription';
+import { toast } from 'sonner';
+import { ConfirmationDialog } from '@/shared/ui/confirmation-dialog';
 
-import { changePassword } from "@/shared/api/users/changePassword"
-import { SubscriptionPasswordChangeModal } from "@/components/subscription-password-change-modal"
+import { changePassword } from '@/shared/api/users/changePassword';
+import { SubscriptionPasswordChangeModal } from '@/components/subscription-password-change-modal';
 
 // Mock data for subscribers
 
-
 export default function SubscribersPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [search, setSearch] = useState(searchParams.get("search") || "")
-  const [tariff, setTariff] = useState(searchParams.get("tariff") || "")
-  
-  const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null)
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [currentPage, setCurrentPage] = useState(Number.parseInt(searchParams.get("page") || "1"))
-  const [itemsPerPage, setItemsPerPage] = useState(6)
-  const [subscribers, setSubscribers] = useState<Subscriber[]>([])
-  const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false)
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [tariff, setTariff] = useState(searchParams.get('tariff') || '');
 
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false)
-  const [isPasswordModalOpen,setIsPasswordModalOpen]=useState(false)
+  const [selectedSubscriber, setSelectedSubscriber] =
+    useState<Subscriber | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(
+    Number.parseInt(searchParams.get('page') || '1')
+  );
+  const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
+
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   // Update URL when filters change
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (search) params.set("search", search)
-    if (tariff) params.set("tariff", tariff)
-    params.set("page", currentPage.toString())
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (tariff) params.set('tariff', tariff);
+    params.set('page', currentPage.toString());
 
     // Проверяем, что URL действительно изменился, чтобы избежать лишних обновлений
-    const newUrl = `${window.location.pathname}?${params.toString()}`
-    const currentUrl = `${window.location.pathname}?${searchParams.toString()}`
-    
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    const currentUrl = `${window.location.pathname}?${searchParams.toString()}`;
+
     if (newUrl !== currentUrl) {
-      router.push(newUrl, { scroll: false })
+      router.push(newUrl, { scroll: false });
     }
-    
-  }, [search, tariff, currentPage, router, searchParams])
+  }, [search, tariff, currentPage, router, searchParams]);
 
   const handleOpenDetails = (subscriber: Subscriber) => {
-    setSelectedSubscriber(subscriber)
-    setIsDetailsModalOpen(true)
-  }
+    setSelectedSubscriber(subscriber);
+    setIsDetailsModalOpen(true);
+  };
 
   const handleOpenEdit = (subscriber: Subscriber) => {
-    setSelectedSubscriber(subscriber)
-    setIsEditModalOpen(true)
-  }
+    setSelectedSubscriber(subscriber);
+    setIsEditModalOpen(true);
+  };
 
   const handleUpdateSubscription = (subscriber: Subscriber) => {
-    setSelectedSubscriber(subscriber)
-    setIsRenewalModalOpen(true)
-  }
+    setSelectedSubscriber(subscriber);
+    setIsRenewalModalOpen(true);
+  };
 
-  const openPassModal=(subscriber:Subscriber)=>{
-    setSelectedSubscriber(subscriber)
-    setIsPasswordModalOpen(true)
-  }
+  const openPassModal = (subscriber: Subscriber) => {
+    setSelectedSubscriber(subscriber);
+    setIsPasswordModalOpen(true);
+  };
 
   const handleBanUser = (subscriber: Subscriber) => {
-    setSelectedSubscriber(subscriber)
-    setIsConfirmationModalOpen(true)
-  }
+    setSelectedSubscriber(subscriber);
+    setIsConfirmationModalOpen(true);
+  };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
-  
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Используем данные, полученные с сервера, вместо локальной пагинации
-  const [totalPages, setTotalPages] = useState(1)
-  const [currentItems, setCurrentItems] = useState<Subscriber[]>([])
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentItems, setCurrentItems] = useState<Subscriber[]>([]);
 
-  const fetchSubscribers=async()=>{
+  const fetchSubscribers = async () => {
     getAllAnkets(currentPage, itemsPerPage, search, tariff).then((res) => {
-      console.log(res,"RES")
-      setSubscribers(res.users || [])
-      setCurrentItems(res.users || [])
-      setTotalPages(res.pagination.totalPages || 1)
-    })
-  }
+      console.log(res, 'RES');
+      setSubscribers(res.users || []);
+      setCurrentItems(res.users || []);
+      setTotalPages(res.pagination.totalPages || 1);
+    });
+  };
 
   useEffect(() => {
-    fetchSubscribers()
-    setSelectedSubscriber(null)
-  }, [currentPage, itemsPerPage, search, tariff])
+    fetchSubscribers();
+    setSelectedSubscriber(null);
+  }, [currentPage, itemsPerPage, search, tariff]);
 
-  
-
-  const handleRenewSubscription = async ( plan: string) => {
-    const renewal=await renewSubscription(selectedSubscriber?.email??'', plan)
-    if(renewal){
-      toast.success("Подписка успешно обновлена")
-      fetchSubscribers()
-    }else{
-      toast.error("Ошибка при обновлении подписки")
+  const handleRenewSubscription = async (plan: string) => {
+    const renewal = await renewSubscription(
+      selectedSubscriber?.email ?? '',
+      plan
+    );
+    if (renewal) {
+      toast.success('Подписка успешно обновлена');
+      fetchSubscribers();
+    } else {
+      toast.error('Ошибка при обновлении подписки');
     }
-    console.log(renewal,"RENEWAL")
-  }
+    console.log(renewal, 'RENEWAL');
+  };
 
-  const handleChangePassword=async(password:string)=>{
-    console.log(password, selectedSubscriber)
-    if(selectedSubscriber){
-      const result=await changePassword(selectedSubscriber?._id,password)
-      console.log(result)
-      if(result?.data.message){
-        toast.success('Пароль успешно изменён')
-      }
-      else{
-        toast.error('Ошибка при смене пароля')
+  const handleChangePassword = async (password: string) => {
+    console.log(password, selectedSubscriber);
+    if (selectedSubscriber) {
+      const result = await changePassword(selectedSubscriber?._id, password);
+      console.log(result);
+      if (result?.data.message) {
+        toast.success('Пароль успешно изменён');
+      } else {
+        toast.error('Ошибка при смене пароля');
       }
     }
-  }
-
-  
+  };
 
   return (
     <div className="">
@@ -146,12 +149,20 @@ export default function SubscribersPage() {
           <Input
             placeholder="Поиск по email или имени"
             value={search}
-            onChange={(e) => {setCurrentPage(1); setSearch(e.target.value)}}
+            onChange={(e) => {
+              setCurrentPage(1);
+              setSearch(e.target.value);
+            }}
             className="w-full"
           />
         </div>
         <div className="w-full md:w-64">
-          <Select value={tariff} onValueChange={(value) => {setCurrentPage(1); setTariff(value)}}>
+          <Select
+            value={tariff}
+            onValueChange={(value) => {
+              setCurrentPage(1);
+              setTariff(value);
+            }}>
             <SelectTrigger>
               <SelectValue placeholder="Все тарифы" />
             </SelectTrigger>
@@ -173,15 +184,22 @@ export default function SubscribersPage() {
             onOpenDetails={handleOpenDetails}
             onOpenEdit={handleOpenEdit}
             onUpdateSubscription={handleUpdateSubscription}
-            onBanUser={handleBanUser} onPasswordChange={openPassModal}
+            onBanUser={handleBanUser}
+            onPasswordChange={openPassModal}
           />
         ))}
       </div>
 
       {subscribers?.length > 0 ? (
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       ) : (
-        <p className="text-center mt-8 text-muted-foreground">Подписчики не найдены</p>
+        <p className="text-center mt-8 text-muted-foreground">
+          Подписчики не найдены
+        </p>
       )}
 
       {selectedSubscriber && (
@@ -195,13 +213,15 @@ export default function SubscribersPage() {
             subscriber={selectedSubscriber}
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
-            onSave={async(updatedSubscriber) => {
-              console.log("Save updated subscriber:", updatedSubscriber)
-              const editedUser=await editUser(updatedSubscriber._id, updatedSubscriber)
-              console.log(editedUser,"EDITED USER")
-              fetchSubscribers()
-              setIsEditModalOpen(false)
-              
+            onSave={async (updatedSubscriber) => {
+              console.log('Save updated subscriber:', updatedSubscriber);
+              const editedUser = await editUser(
+                updatedSubscriber._id,
+                updatedSubscriber
+              );
+              console.log(editedUser, 'EDITED USER');
+              fetchSubscribers();
+              setIsEditModalOpen(false);
             }}
           />
           <SubscriptionRenewalModal
@@ -212,27 +232,31 @@ export default function SubscribersPage() {
           <ConfirmationDialog
             open={isConfirmationModalOpen}
             onOpenChange={setIsConfirmationModalOpen}
-            onConfirm={async()=>{
-              const ban=await banUser(selectedSubscriber?._id??'')
-              console.log(ban,"BAN")
-              if(ban){
-                toast.success("Пользователь успешно заблокирован")
-                fetchSubscribers()
-                setIsConfirmationModalOpen(false)
-              }else{
-                toast.error("Ошибка при блокировке пользователя")
+            onConfirm={async () => {
+              const ban = await banUser(selectedSubscriber?._id ?? '');
+              console.log(ban, 'BAN');
+              if (ban) {
+                toast.success('Пользователь успешно заблокирован');
+                fetchSubscribers();
+                setIsConfirmationModalOpen(false);
+              } else {
+                toast.error('Ошибка при блокировке пользователя');
               }
             }}
-            itemName={selectedSubscriber?.email??''}
+            itemName={selectedSubscriber?.email ?? ''}
             itemIdentifier={''}
             type="destructive"
             title="Заблокировать"
           />
-          <SubscriptionPasswordChangeModal onPasswordChange={handleChangePassword} onClose={()=>{setIsPasswordModalOpen(false)}} isOpen={isPasswordModalOpen} />
+          <SubscriptionPasswordChangeModal
+            onPasswordChange={handleChangePassword}
+            onClose={() => {
+              setIsPasswordModalOpen(false);
+            }}
+            isOpen={isPasswordModalOpen}
+          />
         </>
       )}
     </div>
-  )
+  );
 }
-
-

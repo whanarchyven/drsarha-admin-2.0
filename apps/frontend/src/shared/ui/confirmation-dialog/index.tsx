@@ -5,17 +5,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button, ButtonProps } from "@/components/ui/button"
+} from '@/components/ui/dialog';
+import { Button, ButtonProps } from '@/components/ui/button';
 
 interface ConfirmationDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onConfirm: () => void
-  itemName: string
-  itemIdentifier: string,
-  type?:ButtonProps["variant"]
-  title?:string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  itemName: string;
+  itemIdentifier: string;
+  type?: ButtonProps['variant'];
+  title?: string;
 }
 
 export function ConfirmationDialog({
@@ -25,7 +25,7 @@ export function ConfirmationDialog({
   itemName,
   itemIdentifier,
   type,
-  title
+  title,
 }: ConfirmationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -33,18 +33,19 @@ export function ConfirmationDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Вы уверены, что хотите {title?.toLowerCase()} {itemName} {itemIdentifier}? Это действие нельзя отменить.
+            Вы уверены, что хотите {title?.toLowerCase()} {itemName}{' '}
+            {itemIdentifier}? Это действие нельзя отменить.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Отмена
           </Button>
-          <Button variant={type || "default"} onClick={onConfirm}>
+          <Button variant={type || 'default'} onClick={onConfirm}>
             {title}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-} 
+  );
+}

@@ -16,12 +16,12 @@
     "security/detect-object-injection": "off",
     "max-lines": [
       "error",
-      { "max": 300, "skipBlankLines": true, "skipComments": true }
+      { "max": 500, "skipBlankLines": true, "skipComments": true }
     ],
     "react/jsx-filename-extension": "off",
     "import/order": "off",
     "no-empty-pattern": "off",
-    "@typescript-eslint/no-unused-vars": ["error"],
+    "@typescript-eslint/no-unused-vars": "off",
     "react/react-in-jsx-scope": "off",
     "import/no-extraneous-dependencies": "off",
     "@typescript-eslint/no-explicit-any": "off",

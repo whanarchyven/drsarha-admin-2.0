@@ -1,15 +1,14 @@
-"use client"
+'use client';
 import { eden } from '@/features/eden/eden';
 import { getHeloPageData } from '@/shared/api/getHeloPageData';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-export default async function Home() {
-
-  const router = useRouter()
+export default function Home() {
+  const router = useRouter();
 
   useEffect(() => {
-    router.push('/news')
-  }, [])
+    router.push('/news');
+  }, []);
 
   return (
     <>

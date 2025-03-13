@@ -16,7 +16,13 @@ interface NavLinkProps extends LinkInterface {
   isActive: boolean;
 }
 
-const NavLink: React.FC<NavLinkProps> = ({ icon, link, name, isActive, roles }) => {
+const NavLink: React.FC<NavLinkProps> = ({
+  icon,
+  link,
+  name,
+  isActive,
+  roles,
+}) => {
   return (
     <Link
       href={link}
@@ -33,10 +39,7 @@ const NavLink: React.FC<NavLinkProps> = ({ icon, link, name, isActive, roles }) 
             isActive ? 'opacity-100' : 'opacity-50 md:opacity-[0.24]'
           )}>
           <img className={'w-7 md:w-4 2xl:w-7'} src={icon} alt={name} />
-          <p
-            className={
-              'text-base md:text-xs 2xl:text-base font-semibold'
-            }>
+          <p className={'text-base md:text-xs 2xl:text-base font-semibold'}>
             {name}
           </p>
         </div>
@@ -46,23 +49,23 @@ const NavLink: React.FC<NavLinkProps> = ({ icon, link, name, isActive, roles }) 
 };
 
 export const navLinks: LinkInterface[] = [
-  {
-    icon: '/icons/news.svg',
-    link: '/news',
-    name: 'Новости',
-    roles: ['admin', 'developer', 'editor'],
-  },
+  // {
+  //   icon: '/icons/news.svg',
+  //   link: '/news',
+  //   name: 'Новости',
+  //   roles: ['admin', 'developer', 'editor'],
+  // },
   {
     icon: '/icons/articles.svg',
     link: '/articles',
     name: 'Статьи',
-    roles: ['admin'],
+    roles: ['admin', 'editor'],
   },
   {
     icon: '/icons/ankets.svg',
     link: '/ankets',
     name: 'Анкеты',
-    roles: ['admin', 'editor'],
+    roles: ['admin'],
   },
   {
     icon: '/icons/users.svg',
@@ -76,18 +79,18 @@ export const navLinks: LinkInterface[] = [
     name: 'Пользователи',
     roles: ['admin', 'developer'],
   },
-  {
-    icon: '/icons/autopublishing.svg',
-    link: '/autopublishing',
-    name: 'Автопубликация',
-    roles: ['admin', 'developer'],
-  },
-  {
-    icon: '/icons/settings.svg',
-    link: '/settings',
-    name: 'Настройки',
-    roles: ['admin', 'developer', 'editor'],
-  },
+  // {
+  //   icon: '/icons/autopublishing.svg',
+  //   link: '/autopublishing',
+  //   name: 'Автопубликация',
+  //   roles: ['admin', 'developer'],
+  // },
+  // {
+  //   icon: '/icons/settings.svg',
+  //   link: '/settings',
+  //   name: 'Настройки',
+  //   roles: ['admin', 'developer'],
+  // },
 ];
 
 const Navbar: React.FC<{ userRole?: string }> = ({ userRole = 'admin' }) => {
@@ -96,7 +99,10 @@ const Navbar: React.FC<{ userRole?: string }> = ({ userRole = 'admin' }) => {
 
   return (
     <div className={'w-full rounded-b-3xl h-full md:p-3 xl:p-6'}>
-      <div className={'flex gap-3 py-12 h-full rounded-xl flex-col justify-between bg-[#12007A] bg-opacity-10'}>
+      <div
+        className={
+          'flex gap-3 py-12 h-full rounded-xl flex-col justify-between bg-[#12007A] bg-opacity-10'
+        }>
         <div>
           <div className={'flex gap-2 items-center'}>
             <div className={'xl:pl-8 pl-2 md:w-24 lg:w-32 2xl:w-52'}>
@@ -106,7 +112,7 @@ const Navbar: React.FC<{ userRole?: string }> = ({ userRole = 'admin' }) => {
           </div>
           <div className={'mt-12'}>
             {navLinks
-              .filter(link => link.roles.includes(userRole))
+              .filter((link) => link.roles.includes(userRole))
               .map((link, index) => (
                 <NavLink
                   key={index}

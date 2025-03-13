@@ -37,13 +37,12 @@
 }
 
 @font-face {
-  font-family: "Script";
-  src: local("Brush Script MT"), local("Brush Script Std");
+  font-family: 'Script';
+  src: local('Brush Script MT'), local('Brush Script Std');
   font-weight: normal;
   font-style: normal;
 }
 
 .font-script {
-  font-family: "Script", cursive;
+  font-family: 'Script', cursive;
 }
-

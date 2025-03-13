@@ -1,15 +1,15 @@
-"use client"
-import { DatePicker } from "@/components/date-picker";
-import { getNews } from "@/shared/api/news/getNews";
-import { useEffect, useState } from "react";
-import { parse, format, addDays } from "date-fns";
-import NewsCard from "@/entities/News/ui";
+'use client';
+import { DatePicker } from '@/components/date-picker';
+import { getNews } from '@/shared/api/news/getNews';
+import { useEffect, useState } from 'react';
+import { parse, format, addDays } from 'date-fns';
+import NewsCard from '@/entities/News/ui';
 
-export default function NewsPage({searchParams}:{searchParams: any}) {
-  const {start_date, end_date} = searchParams
-  const [news,setNews] = useState<any[]>([])
+export default function NewsPage({ searchParams }: { searchParams: any }) {
+  const { start_date, end_date } = searchParams;
+  const [news, setNews] = useState<any[]>([]);
 
-  useEffect(()=>{
+  useEffect(() => {
     try {
       let formattedStartDate: string | undefined;
       let formattedEndDate: string | undefined;
@@ -22,11 +22,11 @@ export default function NewsPage({searchParams}:{searchParams: any}) {
             formattedStartDate = start_date;
           } else {
             // Иначе парсим и форматируем
-            const parsedDate = parse(start_date, "yyyy-MM-dd", new Date());
+            const parsedDate = parse(start_date, 'yyyy-MM-dd', new Date());
             formattedStartDate = format(parsedDate, "yyyy-MM-dd'T'00:00:00'Z'");
           }
         } catch (error) {
-          console.error("Ошибка при обработке start_date:", error);
+          console.error('Ошибка при обработке start_date:', error);
         }
       }
 
@@ -38,13 +38,13 @@ export default function NewsPage({searchParams}:{searchParams: any}) {
             formattedEndDate = end_date;
           } else {
             // Иначе парсим и форматируем
-            const parsedDate = parse(end_date, "yyyy-MM-dd", new Date());
+            const parsedDate = parse(end_date, 'yyyy-MM-dd', new Date());
             formattedEndDate = format(parsedDate, "yyyy-MM-dd'T'00:00:00'Z'");
           }
         } catch (error) {
-          console.error("Ошибка при обработке end_date:", error);
+          console.error('Ошибка при обработке end_date:', error);
         }
-      } 
+      }
       // Если есть start_date, но нет end_date, автоматически устанавливаем end_date как start_date + 1 день
       else if (formattedStartDate && !formattedEndDate) {
         try {
@@ -52,7 +52,7 @@ export default function NewsPage({searchParams}:{searchParams: any}) {
           const nextDay = addDays(startDate, 2);
           formattedEndDate = format(nextDay, "yyyy-MM-dd'T'00:00:00'Z'");
         } catch (error) {
-          console.error("Ошибка при автоматическом создании end_date:", error);
+          console.error('Ошибка при автоматическом создании end_date:', error);
         }
       }
 
@@ -62,9 +62,9 @@ export default function NewsPage({searchParams}:{searchParams: any}) {
       if (formattedEndDate) queryParams.end_date = formattedEndDate;
 
       // Выполняем запрос
-      getNews(queryParams).then((res)=>{
+      getNews(queryParams).then((res) => {
         if (res.data) {
-          console.log(res.data,"AUE RESPONSE")
+          console.log(res.data, 'AUE RESPONSE');
 
           setNews(res.data);
         } else {
@@ -72,18 +72,18 @@ export default function NewsPage({searchParams}:{searchParams: any}) {
         }
       });
     } catch (error) {
-      console.error("Ошибка при получении новостей:", error);
+      console.error('Ошибка при получении новостей:', error);
       setNews([]);
     }
-  },[start_date, end_date])
+  }, [start_date, end_date]);
 
   return (
     <div>
       <div className="flex justify-between items-center gap-4">
         <h1 className="text-2xl font-bold">Новости</h1>
-        <DatePicker/>
+        <DatePicker />
       </div>
-      
+
       <div className="mt-6">
         {news.length > 0 ? (
           <div className="grid gap-4">
@@ -96,5 +96,5 @@ export default function NewsPage({searchParams}:{searchParams: any}) {
         )}
       </div>
     </div>
-  )
+  );
 }

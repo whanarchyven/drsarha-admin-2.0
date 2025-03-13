@@ -1,13 +1,13 @@
-import { Frown } from "lucide-react"
-import Link from "next/link"
+import { Frown } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ErrorPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const code = searchParams.code || "404"
-  const message = searchParams.message || "Страница не найдена"
+  const code = searchParams.code || '404';
+  const message = searchParams.message || 'Страница не найдена';
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
@@ -17,11 +17,10 @@ export default function ErrorPage({
         <p className="text-xl text-gray-600 mb-8">{message}</p>
         <Link
           href="/"
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:from-purple-600 hover:to-pink-600 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105"
-        >
+          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:from-purple-600 hover:to-pink-600 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105">
           Вернуться на главную
         </Link>
       </div>
     </div>
-  )
+  );
 }

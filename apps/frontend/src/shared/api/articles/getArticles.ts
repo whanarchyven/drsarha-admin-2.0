@@ -1,39 +1,65 @@
-import { Article } from "@/entities/Article/model";
-import { eden } from "@/features/eden/eden";
+import { Article } from '@/entities/Article/model';
+import { eden } from '@/features/eden/eden';
 
 type ArticlesResponse = {
-  all:number,
-  deleted:number,
-  published:number,
-  translated:number,
-  data:Article[]
+  metadata: {
+    total: number;
+    limit: number;
+    skip: number;
+    has_more: boolean;
+    all: number;
+    deleted: number;
+    published: number;
+    translated: number;
+  };
+  data: Article[];
 };
 
 // Функция для обработки markdown текста в статьях
 
-
-export const getArticles = async ({page, limit, search, sort_by, sort_order, start_date, end_date, category, subcategory}:{page?: number, limit?: number, search?: string, sort_by?: string, sort_order?: string, start_date?: string, end_date?: string, category?: string, subcategory?: string}): Promise<ArticlesResponse> => {
-
-    const query = {
-        page: page ?? 0,
-        ...(limit !== undefined && { limit }),
-        ...(search !== undefined && { search }),
-        ...(sort_by !== undefined && { sort_by }),
-        ...(sort_order !== undefined && { sort_order }),
-        ...(start_date !== undefined && { start_date }),
-        ...(end_date !== undefined && { end_date }),
-        ...(category !== undefined && { category }),
-        ...(sort_order !== undefined && { sort_order }),
-    }
-    console.log(query)
+export const getArticles = async ({
+  page,
+  limit,
+  search,
+  sort_by,
+  sort_order,
+  start_date,
+  end_date,
+  category,
+  subcategory,
+  include_deleted,
+}: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sort_by?: string;
+  sort_order?: string;
+  start_date?: string;
+  end_date?: string;
+  category?: string;
+  subcategory?: string;
+  include_deleted?: boolean;
+}): Promise<ArticlesResponse> => {
+  const query = {
+    page: page ?? 0,
+    ...(limit !== undefined && { limit }),
+    ...(search !== undefined && { search }),
+    ...(sort_by !== undefined && { sort_by }),
+    ...(sort_order !== undefined && { sort_order }),
+    ...(start_date !== undefined && { start_date }),
+    ...(end_date !== undefined && { end_date }),
+    ...(category !== undefined && { category }),
+    ...(subcategory !== undefined && { subcategory }),
+    ...(include_deleted !== undefined && { include_deleted }),
+  };
+  console.log(query);
 
   const response = await eden.editor.articles.get({
-    query: query
+    query: query,
   });
-  
+
   // Обрабатываем markdown поля в статьях
   const data = response.data as unknown as ArticlesResponse;
-  
-  
+
   return data;
-}
+};

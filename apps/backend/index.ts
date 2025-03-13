@@ -10,8 +10,8 @@ const app = new Elysia({
 
 })
     .use(cors({
-        origin: ['http://localhost:3001', 'http://localhost:3000'],
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        origin: ['http://localhost:3003', 'http://localhost:3004'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
     }))
@@ -20,9 +20,9 @@ const app = new Elysia({
     .use(createArticlesApiController())
     .listen({
         idleTimeout: 60,
-        port: 3000
+        port: 3004
     })
 
-console.log('🦊 Сервер запущен на порту 3000')
+console.log('🦊 Сервер запущен на порту 3004')
 
 export type App = typeof app 

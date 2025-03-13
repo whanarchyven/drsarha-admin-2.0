@@ -8,6 +8,9 @@ export class AxiosApiService {
       baseURL,
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
       ...defaultConfig,
     });
@@ -16,9 +19,19 @@ export class AxiosApiService {
     this.api.interceptors.response.use(
       (response: AxiosResponse) => response,
       (error: AxiosError) => {
-        console.error('API error:', error.response?.data || error.message);
-        return Promise.reject(error);
+
+        console.error('API error:', error.response);
+        console.log(JSON.stringify(error),"ERROR RESPONSE")
+        return Promise.reject(error.response);
       }
+    );
+
+    this.api.interceptors.request.use(
+      (config) => {
+        console.log('Request config:', JSON.stringify(config));
+        return config;
+      },
+      (error) => Promise.reject(error)
     );
   }
 
@@ -50,6 +63,12 @@ export class AxiosApiService {
 
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.api.delete<T>(url, config);
+    return response.data;
+  }
+
+  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+
+    const response = await this.api.patch<T>(url, data, config);
     return response.data;
   }
 }

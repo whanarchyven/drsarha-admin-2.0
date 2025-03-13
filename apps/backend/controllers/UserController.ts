@@ -7,6 +7,7 @@ export function createUserController(db: Db) {
 
     return new Elysia({ prefix: '/users' })
         .post('/login', async ({ body }) => {
+            console.log(body,"BODY")
             const result = await userService.login(body);
             if (!result) {
                 throw new Error('Invalid credentials');
@@ -66,6 +67,7 @@ export function createUserController(db: Db) {
         })
 
         .put('/:id/password', async ({ params: { id }, body }) => {
+            console.log(body,"BODY")
             const success = await userService.changePassword(id, body.password);
             if (!success) {
                 throw new Error('User not found');

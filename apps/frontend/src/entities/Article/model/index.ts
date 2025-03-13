@@ -1,60 +1,88 @@
 export interface Article {
-    id: string;
+  // Языки
+  languages: string[];
 
-    // Title
-    title: string;
-    title_translation_ai: string;
-    title_translation_human: string;
-    titleIndexedStatus: boolean;
+  // Заголовок
+  title: {
+    en: {
+      ai: string;
+      human: string;
+    };
+    ru: {
+      ai: string;
+      human: string;
+    };
+    raw: string;
+  };
 
-    // Content
-    content: string;
-    pdf_text: string;
-    pdf_text_translation_human: string;
-    pdf_text_translation_ai: string;
-    
-    // Translations
-    translation_ai: string;
-    
-    // Summaries
-    summary_ai: string;
-    pdf_text_summary_ai: string;
-    pdf_text_summary_human: string;
-    
-    // State-flags
+  // Содержимое
+  content: {
+    en: {
+      ai: string;
+      human: string;
+    };
+    ru: {
+      ai: string;
+      human: string;
+    };
+    raw: string;
+  };
+
+  // Краткое содержание
+  summary: {
+    ru: {
+      ai: string;
+      human: string;
+    };
+  };
+
+  // Метаданные
+  meta: {
     isIndexed: boolean;
     isPublished: boolean;
-    isPublishedUpdatedAt: string;
-    isTranslationIndexed?: boolean;
-    isPDFTranslationIndexed?: boolean;
-    
-    
-    // URLs
-    articleUrl: string;
-    mainUrl: string;
-    
-    // Dates
-    publishedDate: string;
-    createdAt: string;
-    updatedAt: string;
-    
-    // Categories
-    category: string;
-    subcategory: string;
-    
-    // Authors
-    authors: string[];
-    
-    // References
-    references: string[] | any;
-    
-    // Parser info
-    parserIteration: number;
+    isDeleted: boolean;
+    hasTranslation: boolean;
+    hasDevComment: boolean;
+    isClinicalCase: boolean;
+  };
 
-    is_clinic_case?:boolean;
-    
-    // Other
-    mongo_id?: {
-        $oid: string;
-    };
+  // URL статьи
+  articleUrl: string;
+
+  // Даты
+  dates: {
+    published: string;
+    created: string;
+    updated: string;
+  };
+
+  // Категория и подкатегория
+  category: string;
+  subcategory: string;
+
+  // Ссылки
+  references: string[];
+
+  // DOI
+  doi: string;
+
+  // Название издателя
+  publisherName: string;
+
+  // Авторы
+  authors: string[];
+
+  // Дополнительные данные
+  addons: {
+    mainUrl?: string;
+    pdf_text?: string;
+    isDeletedAt?: string;
+  };
+
+  // Итерация парсера
+  parserIteration: number;
+
+  // Идентификатор
+  id: string;
+  _id: null | string;
 }
