@@ -12,10 +12,10 @@ const NewsCard = (props: NewsCardProps) => {
 
   const displayTitle = isEnglish
     ? props.title
-    : props.title_translation_human ?? '';
+    : (props.title_translation_human ?? '');
   const displayContent = isEnglish
     ? props.content
-    : props.translation_human ?? '';
+    : (props.translation_human ?? '');
 
   return (
     <Card className="w-full overflow-hidden">
