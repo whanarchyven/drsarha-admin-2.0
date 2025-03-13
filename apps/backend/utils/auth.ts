@@ -1,4 +1,3 @@
-import { hash, compare } from 'bcrypt';
 import { SignJWT } from 'jose';
 import type { User } from '../models/User';
 
@@ -6,11 +5,14 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'your-secret-key';
 const SALT_ROUNDS = 10;
 
 export async function hashPassword(password: string): Promise<string> {
-    return await hash(password, SALT_ROUNDS);
+    return await Bun.password.hash(password, {
+        algorithm: "bcrypt",
+        cost: SALT_ROUNDS
+    });
 }
 
 export async function comparePasswords(password: string, hashedPassword: string): Promise<boolean> {
-    return await compare(password, hashedPassword);
+    return await Bun.password.verify(password, hashedPassword);
 }
 
 export async function generateAuthToken(user: User): Promise<string> {

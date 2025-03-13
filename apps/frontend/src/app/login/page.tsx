@@ -21,7 +21,7 @@ export default function AuthPage() {
     const data = await login(email, password);
     console.log('Received data:', data);
     if (data) {
-      router.push('/news');
+      router.push('/articles');
     }
   };
 

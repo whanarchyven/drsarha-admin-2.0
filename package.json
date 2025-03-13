@@ -15,8 +15,10 @@
     "start:backend": "cd apps/backend && bun --watch index.ts",
     "start": "concurrently \"pnpm run start:frontend\" \"pnpm run start:backend\""
   },
-
   "devDependencies": {
     "concurrently": "^9.1.0"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1"
   }
 }
