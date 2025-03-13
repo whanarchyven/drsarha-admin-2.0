@@ -20,9 +20,9 @@ const app = new Elysia({
     .use(createArticlesApiController())
     .listen({
         idleTimeout: 60,
-        port: 3004
+        port: 3003
     })
 
-console.log('🦊 Сервер запущен на порту 3004')
+console.log('🦊 Сервер запущен на порту 3003')
 
 export type App = typeof app 

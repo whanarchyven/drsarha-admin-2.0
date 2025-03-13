@@ -6,9 +6,9 @@
     "node": ">=20.11.0"
   },
   "scripts": {
-    "dev": "next dev --port 3003",
+    "dev": "next dev --port 3002",
     "build": "next build --experimental-debug-memory-usage && npm run lint && npm run format:fix",
-    "start": "NODE_OPTIONS=--inspect next start --port 3003",
+    "start": "NODE_OPTIONS=--inspect next start --port 3002",
     "lint": "next lint",
     "test": "lint-staged",
     "format": "prettier --check .",
