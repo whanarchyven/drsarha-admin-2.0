@@ -10,7 +10,7 @@ const app = new Elysia({
 
 })
     .use(cors({
-        origin: ['http://localhost:3003', 'http://localhost:3004'],
+        origin: ['http://localhost:3002', 'http://localhost:3003'],
         methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
