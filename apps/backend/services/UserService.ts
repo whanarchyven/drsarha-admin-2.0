@@ -76,11 +76,14 @@ export class UserService {
 
     async changePassword(id: string, password: string): Promise<boolean> {
         console.log(id, password,"Change password")
+        const searchId = new ObjectId(id)
+        console.log(searchId,"SEARCH ID")
+        console.log(this.db.databaseName,"DB",this.collection.collectionName,"COLLECTION")
         const newPassword = await hashPassword(password)
-        const user=await this.collection.findOne({_id:new ObjectId(id)})
+        const user=await this.collection.findOne({_id:searchId})
         console.log(user)
         const result = await this.collection.updateOne(
-            { _id: new ObjectId(id) },
+            { _id: searchId },
             { $set: { password: newPassword, updatedAt: new Date() } }
         );
         console.log(result)

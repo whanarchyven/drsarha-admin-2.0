@@ -25,6 +25,7 @@ import { ConfirmationDialog } from '@/shared/ui/confirmation-dialog';
 
 import { changePassword } from '@/shared/api/users/changePassword';
 import { SubscriptionPasswordChangeModal } from '@/components/subscription-password-change-modal';
+import { eden } from '@/features/eden/eden';
 
 // Mock data for subscribers
 
@@ -130,7 +131,9 @@ export default function SubscribersPage() {
   const handleChangePassword = async (password: string) => {
     console.log(password, selectedSubscriber);
     if (selectedSubscriber) {
-      const result = await changePassword(selectedSubscriber?._id, password);
+      const result = await eden['main-backend']['reset-pass']({id:selectedSubscriber._id}).put({
+        password:password
+      });
       console.log(result);
       if (result?.data.message) {
         toast.success('Пароль успешно изменён');
