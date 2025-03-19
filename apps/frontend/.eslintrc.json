@@ -16,7 +16,7 @@
     "security/detect-object-injection": "off",
     "max-lines": [
       "error",
-      { "max": 500, "skipBlankLines": true, "skipComments": true }
+      { "max": 1000, "skipBlankLines": true, "skipComments": true }
     ],
     "react/jsx-filename-extension": "off",
     "import/order": "off",

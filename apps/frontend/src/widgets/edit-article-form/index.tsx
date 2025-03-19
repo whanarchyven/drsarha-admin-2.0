@@ -67,6 +67,23 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
       ? initialValues.content.ru.human
       : initialValues.content.ru.ai
   );
+
+  // Выводим информацию о контенте
+  console.log('Content Structure:', {
+    hasRaw: Boolean(initialValues.content?.raw),
+    rawLength: initialValues.content?.raw
+      ? initialValues.content.raw.length
+      : 0,
+    hasRuAi: Boolean(initialValues.content?.ru?.ai),
+    ruAiLength: initialValues.content?.ru?.ai
+      ? initialValues.content.ru.ai.length
+      : 0,
+    hasRuHuman: Boolean(initialValues.content?.ru?.human),
+    ruHumanLength: initialValues.content?.ru?.human
+      ? initialValues.content.ru.human.length
+      : 0,
+  });
+
   const [summary, setSummary] = useState(
     initialValues.summary.ru.human.length > 0
       ? initialValues.summary.ru.human
@@ -77,6 +94,9 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
 
   const options = [
     { label: 'Детская дерматология', value: 'Детская дерматология' },
+    { label: 'Педиатрия', value: 'Педиатрия' },
+    { label: 'Диетология', value: 'Диетология' },
+    { label: 'Дерматология', value: 'Дерматология' },
     { label: 'Дерматовенерология', value: 'Дерматовенерология' },
     { label: 'Трихология', value: 'Трихология' },
     { label: 'Дерматоскопия', value: 'Дерматоскопия' },
@@ -95,7 +115,63 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
   // For initialization; on mount, convert the initial Markdown to blocks and replace the default editor's content
   useEffect(() => {
     async function loadInitialHTML() {
-      console.log(text);
+      // Найдем таблицы в исходном тексте перед всеми преобразованиями
+      const extractHTMLTablesFromOriginal = (
+        content: string | undefined
+      ): string[] => {
+        if (!content) return [];
+
+        console.log(
+          'Ищем таблицы в исходном тексте, длина контента:',
+          content.length
+        );
+        console.log('Первые 100 символов контента:', content.substring(0, 100));
+
+        const tableRegex = /<table[\s\S]*?<\/table>/gi;
+        const tables = content.match(tableRegex) || [];
+
+        console.log(`Найдено таблиц в исходном тексте: ${tables.length}`);
+        if (tables.length > 0 && tables[0]) {
+          console.log('Пример найденной таблицы:', tables[0].substring(0, 200));
+        } else {
+          // Проверим наличие частей таблиц в контенте
+          console.log('Проверка фрагментов таблиц:');
+          console.log('- Открывающий тег <table>:', content.includes('<table'));
+          console.log(
+            '- Закрывающий тег </table>:',
+            content.includes('</table>')
+          );
+          console.log('- Тег <tr>:', content.includes('<tr>'));
+          console.log('- Тег <td>:', content.includes('<td>'));
+
+          // Попробуем искать с другим регулярным выражением
+          const alternativeRegex = /<table[^>]*>[\s\S]*?<\/table>/gi;
+          const altTables = content.match(alternativeRegex) || [];
+          console.log(
+            `Найдено таблиц с альтернативным regex: ${altTables.length}`
+          );
+
+          // Проверим, есть ли в тексте "Диагностические критерии" (из примера)
+          if (content.includes('Диагностические критерии')) {
+            console.log('Найдено упоминание "Диагностические критерии"');
+            const index = content.indexOf('Диагностические критерии');
+            console.log(
+              'Контекст вокруг:',
+              content.substring(
+                Math.max(0, index - 50),
+                Math.min(content.length, index + 300)
+              )
+            );
+          }
+        }
+
+        return tables;
+      };
+
+      // Извлекаем таблицы из исходного текста
+      console.log('Тип text:', typeof text);
+      console.log('Значение text существует:', Boolean(text));
+      const originalTables = extractHTMLTablesFromOriginal(text as string);
 
       // Функция для исправления синтаксиса Markdown изображений
       const fixMarkdownImages = (markdown: string) => {
@@ -128,7 +204,6 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
         const brokenImgPattern = /!\[(.*?)\][ \t]*[\r\n]+[ \t]*\((.*?)\)/g;
         fixedMarkdown = fixedMarkdown.replace(brokenImgPattern, '![$1]($2)');
 
-        // console.log('После исправления изображений:', fixedMarkdown);
         return fixedMarkdown;
       };
 
@@ -211,37 +286,282 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
         return newBlocks;
       };
 
+      // Функция для создания блока таблицы
+      const createTableBlock = (htmlTable: string) => {
+        try {
+          // Добавляем базовую проверку HTML перед созданием блока
+          if (
+            !htmlTable ||
+            !htmlTable.includes('<table') ||
+            !htmlTable.includes('</table>')
+          ) {
+            console.warn(
+              'Некорректный HTML таблицы:',
+              htmlTable?.substring(0, 100)
+            );
+            return null;
+          }
+
+          return {
+            type: 'table',
+            id: Math.random().toString(36).substring(2, 11),
+            props: {
+              outerHTML: htmlTable,
+            },
+            content: undefined,
+            children: [],
+          };
+        } catch (error) {
+          console.error('Ошибка при создании блока таблицы:', error);
+          return null;
+        }
+      };
+
+      // Функция для обработки блоков с таблицами
+      const processBlocksWithTables = async (
+        blocks: any[],
+        tables: string[]
+      ) => {
+        if (!tables || !tables.length) return blocks;
+
+        // Клонируем блоки для работы
+        const newBlocks = [...blocks];
+        console.log('Начинаем вставку таблиц, всего таблиц:', tables.length);
+
+        for (const table of tables) {
+          try {
+            // Проверяем, что таблица валидная
+            if (!table || table.trim() === '') {
+              console.warn('Пустая таблица, пропускаем');
+              continue;
+            }
+
+            // Создаем таблицу
+            let tableBlocks: any[] = [];
+
+            if (typeof editor.tryParseHTMLToBlocks === 'function') {
+              try {
+                console.log(table, 'TABLE');
+                tableBlocks = await editor.tryParseHTMLToBlocks(table);
+                console.log(tableBlocks, 'TABLE BLOCKS');
+              } catch (parseError) {
+                console.error('Ошибка при парсинге HTML в блоки:', parseError);
+              }
+            }
+
+            // Если не удалось создать блоки, создаем вручную
+            if (!tableBlocks || !tableBlocks.length) {
+              const tableBlock = createTableBlock(table);
+              if (tableBlock) {
+                tableBlocks = [tableBlock];
+              } else {
+                console.warn('Не удалось создать блок таблицы, пропускаем');
+                continue;
+              }
+            }
+
+            // Ищем место для вставки таблицы
+            // 1. Проверяем, есть ли в HTML-таблице какой-то заголовок
+            const tableCaption = table.match(/<caption.*?>(.*?)<\/caption>/i);
+            const tableCaptionText = tableCaption ? tableCaption[1] : '';
+
+            // 2. Также получаем первую строку таблицы для поиска
+            const firstTableRow = table.match(/<tr.*?>(.*?)<\/tr>/i);
+            const firstRowText = firstTableRow ? firstTableRow[1] : '';
+
+            console.log(
+              'Ищем место для таблицы с заголовком:',
+              tableCaptionText
+            );
+
+            // 3. Найдем наиболее подходящее место для вставки таблицы
+            let insertIndex = -1;
+
+            // Сначала ищем блок с заголовком таблицы (если есть)
+            if (tableCaptionText) {
+              insertIndex = newBlocks.findIndex((block) => {
+                if (!block.content || !block.content.length) return false;
+                const blockText = block.content[0]?.text || '';
+                return blockText.includes(tableCaptionText);
+              });
+            }
+
+            // Если блок с заголовком не найден, ищем подходящий абзац,
+            // который может предшествовать таблице
+            if (insertIndex === -1) {
+              // Ищем блоки, которые могут предшествовать таблице
+              const potentialTableHeaders = [
+                'Таблица',
+                'Table',
+                'Диагностические критерии',
+                'Клинические признаки',
+                'Гистопатологические признаки',
+              ];
+
+              for (let i = 0; i < newBlocks.length; i++) {
+                const block = newBlocks[i];
+                if (!block.content || !block.content.length) continue;
+
+                const blockText = block.content[0]?.text || '';
+
+                // Проверяем, содержит ли блок текст, который может быть заголовком для таблицы
+                const isTableHeader = potentialTableHeaders.some((header) =>
+                  blockText.includes(header)
+                );
+
+                if (isTableHeader) {
+                  console.log('Найден блок-кандидат для таблицы:', blockText);
+                  insertIndex = i;
+                  break;
+                }
+              }
+            }
+
+            // Если нашли подходящее место
+            if (insertIndex !== -1) {
+              console.log(
+                `Вставляем таблицу после блока с индексом ${insertIndex}`
+              );
+              newBlocks.splice(insertIndex + 1, 0, ...tableBlocks);
+              console.log(
+                'Таблица вставлена после блока с индексом:',
+                insertIndex
+              );
+              console.log('Новый блок:', newBlocks[insertIndex + 1]);
+              console.log('Все блоки:', newBlocks);
+            } else {
+              // Если место не нашли, добавляем в конец
+              console.log(
+                'Подходящее место для таблицы не найдено, добавляем в конец'
+              );
+              newBlocks.push(...tableBlocks);
+            }
+          } catch (error) {
+            console.error('Ошибка при обработке таблицы:', error);
+          }
+        }
+
+        return newBlocks;
+      };
+
       // Применяем исправление перед парсингом
       const fixedText = text ? fixMarkdownImages(text as string) : '';
       const fixedSummary = summary ? fixMarkdownImages(summary as string) : '';
 
       // Извлекаем все изображения из Markdown
       const images = extractImages(fixedText);
-      // console.log('Найдены изображения:', images);
 
       // Парсим Markdown в блоки
       const blocksText = await editor.tryParseMarkdownToBlocks(fixedText);
-      // console.log('Исходные блоки:', blocksText);
 
-      // Обрабатываем блоки, добавляя изображения
-      const processedBlocks = processBlocksWithImages(blocksText, images);
-      // console.log('Обработанные блоки с изображениями:', processedBlocks);
+      // Сначала обрабатываем блоки, добавляя изображения
+      let processedBlocks = processBlocksWithImages(blocksText, images);
+
+      // Обрабатываем блоки, добавляя таблицы из оригинального текста
+      if (originalTables && originalTables.length > 0) {
+        console.log(
+          'Используем таблицы из исходного текста:',
+          originalTables.length
+        );
+        try {
+          processedBlocks = await processBlocksWithTables(
+            processedBlocks,
+            originalTables
+          );
+        } catch (error) {
+          console.error('Ошибка при обработке таблиц:', error);
+        }
+      } else {
+        console.log('Не найдено таблиц в исходном тексте');
+      }
 
       // Заменяем блоки в редакторе
-      editor.replaceBlocks(editor.document, processedBlocks);
+      if (editor && editor.document) {
+        try {
+          await editor.replaceBlocks(editor.document, processedBlocks);
+        } catch (error) {
+          console.error('Ошибка при замене блоков в редакторе:', error);
+          // Попробуем более безопасный способ установки блоков без таблиц
+          try {
+            // Фильтруем таблицы из блоков, если они вызывают проблемы
+            const safeBlocks = processedBlocks.filter(
+              (block) => block.type !== 'table'
+            );
+            console.log(
+              'Пробуем установить блоки без таблиц, количество блоков:',
+              safeBlocks.length
+            );
+            await editor.replaceBlocks(editor.document, safeBlocks);
+          } catch (innerError) {
+            console.error(
+              'Не удалось установить даже безопасные блоки:',
+              innerError
+            );
+          }
+        }
+      } else {
+        console.error('Редактор или документ не доступны');
+      }
 
       // То же самое для саммари
       const imagesSummary = extractImages(fixedSummary);
+      console.log('Проверяем наличие таблиц в саммари:');
+      const originalTablesSummary = extractHTMLTablesFromOriginal(
+        summary as string
+      );
       const blocksSummary =
         await summaryEditor.tryParseMarkdownToBlocks(fixedSummary);
-      const processedBlocksSummary = processBlocksWithImages(
+
+      let processedBlocksSummary = processBlocksWithImages(
         blocksSummary,
         imagesSummary
       );
-      summaryEditor.replaceBlocks(
-        summaryEditor.document,
-        processedBlocksSummary
-      );
+
+      // Обрабатываем блоки саммари, добавляя таблицы
+      if (originalTablesSummary && originalTablesSummary.length > 0) {
+        try {
+          processedBlocksSummary = await processBlocksWithTables(
+            processedBlocksSummary,
+            originalTablesSummary
+          );
+        } catch (error) {
+          console.error('Ошибка при обработке таблиц в саммари:', error);
+        }
+      }
+
+      // Безопасная замена блоков в редакторе саммари
+      if (summaryEditor && summaryEditor.document) {
+        try {
+          await summaryEditor.replaceBlocks(
+            summaryEditor.document,
+            processedBlocksSummary
+          );
+        } catch (error) {
+          console.error('Ошибка при замене блоков в редакторе саммари:', error);
+          // Пробуем более безопасный вариант - без таблиц
+          try {
+            // Фильтруем таблицы из блоков, если они вызывают проблемы
+            const safeBlocksSummary = processedBlocksSummary.filter(
+              (block) => block.type !== 'table'
+            );
+            console.log(
+              'Пробуем установить блоки саммари без таблиц, количество блоков:',
+              safeBlocksSummary.length
+            );
+            await summaryEditor.replaceBlocks(
+              summaryEditor.document,
+              safeBlocksSummary
+            );
+          } catch (innerError) {
+            console.error(
+              'Не удалось установить даже безопасные блоки саммари:',
+              innerError
+            );
+          }
+        }
+      } else {
+        console.error('Редактор саммари или его документ не доступны');
+      }
     }
     loadInitialHTML();
   }, []);
@@ -261,11 +581,22 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
       const taskId = (res.data as any).task_id;
       toast.success('Статья отправлена на перевод, ожидайте...');
       const checkTask = async () => {
+        // Определяем тип для ответа API
+        interface TranslationResponse {
+          status?: string;
+          [key: string]: any;
+        }
+
         const res = await eden.editor.articles
           .translation({ task_id: taskId })
           .get();
-        console.log(res?.data?.status, 'RES DATA TRANSLATION');
-        if (res?.data?.status == 'completed') {
+
+        // Приводим данные к правильному типу
+        const translationData = res.data as TranslationResponse;
+
+        console.log(translationData.status, 'RES DATA TRANSLATION');
+
+        if (translationData.status === 'completed') {
           console.log('Статья переведена');
           toast.success('Статья переведена! Не забудьте сохранить изменения');
           setIsTranslating(false);

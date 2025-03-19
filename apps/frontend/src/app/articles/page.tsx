@@ -36,6 +36,9 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
 
   const options = [
     { label: 'Детская дерматология', value: 'Детская дерматология' },
+    { label: 'Педиатрия', value: 'Педиатрия' },
+    { label: 'Диетология', value: 'Диетология' },
+    { label: 'Дерматология', value: 'Дерматология' },
     { label: 'Дерматовенерология', value: 'Дерматовенерология' },
     { label: 'Трихология', value: 'Трихология' },
     { label: 'Дерматоскопия', value: 'Дерматоскопия' },

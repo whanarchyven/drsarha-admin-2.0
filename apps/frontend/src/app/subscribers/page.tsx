@@ -131,9 +131,11 @@ export default function SubscribersPage() {
   const handleChangePassword = async (password: string) => {
     console.log(password, selectedSubscriber);
     if (selectedSubscriber) {
-      const result = await eden['main-backend']['reset-pass']({id:selectedSubscriber._id}).put({
-        password:password
-      });
+      const result = await eden['main-backend']
+        ['reset-pass']({ id: selectedSubscriber._id })
+        .put({
+          password: password,
+        });
       console.log(result);
       if (result?.data.message) {
         toast.success('Пароль успешно изменён');
