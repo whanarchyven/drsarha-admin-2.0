@@ -112,13 +112,15 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
 
   const editor = useCreateBlockNote();
   const summaryEditor = useCreateBlockNote();
+
+  console.log(initialValues.content.ru.ai, 'SUKA AI');
   // For initialization; on mount, convert the initial Markdown to blocks and replace the default editor's content
   useEffect(() => {
     async function loadInitialHTML() {
       // Найдем таблицы в исходном тексте перед всеми преобразованиями
       const extractHTMLTablesFromOriginal = (
         content: string | undefined
-      ): string[] => {
+      ): Array<{ html: string; position: number }> => {
         if (!content) return [];
 
         console.log(
@@ -128,11 +130,34 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
         console.log('Первые 100 символов контента:', content.substring(0, 100));
 
         const tableRegex = /<table[\s\S]*?<\/table>/gi;
-        const tables = content.match(tableRegex) || [];
+        const tables: Array<{ html: string; position: number }> = [];
+
+        // Находим все таблицы в тексте с их позициями
+        let match;
+        while ((match = tableRegex.exec(content)) !== null) {
+          const position = match.index;
+          const html = match[0];
+
+          // Очищаем таблицу от дублирующихся тегов tr
+          const cleanedHtml = fixDuplicateTrTags(html);
+
+          // Добавляем в результат таблицу с позицией
+          tables.push({
+            html: cleanedHtml,
+            position: position,
+          });
+
+          console.log(
+            `Найдена таблица в позиции ${position}, размер: ${cleanedHtml.length} символов`
+          );
+        }
 
         console.log(`Найдено таблиц в исходном тексте: ${tables.length}`);
-        if (tables.length > 0 && tables[0]) {
-          console.log('Пример найденной таблицы:', tables[0].substring(0, 200));
+        if (tables.length > 0) {
+          console.log(
+            'Позиции найденных таблиц:',
+            tables.map((t) => t.position)
+          );
         } else {
           // Проверим наличие частей таблиц в контенте
           console.log('Проверка фрагментов таблиц:');
@@ -143,35 +168,23 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
           );
           console.log('- Тег <tr>:', content.includes('<tr>'));
           console.log('- Тег <td>:', content.includes('<td>'));
-
-          // Попробуем искать с другим регулярным выражением
-          const alternativeRegex = /<table[^>]*>[\s\S]*?<\/table>/gi;
-          const altTables = content.match(alternativeRegex) || [];
-          console.log(
-            `Найдено таблиц с альтернативным regex: ${altTables.length}`
-          );
-
-          // Проверим, есть ли в тексте "Диагностические критерии" (из примера)
-          if (content.includes('Диагностические критерии')) {
-            console.log('Найдено упоминание "Диагностические критерии"');
-            const index = content.indexOf('Диагностические критерии');
-            console.log(
-              'Контекст вокруг:',
-              content.substring(
-                Math.max(0, index - 50),
-                Math.min(content.length, index + 300)
-              )
-            );
-          }
         }
 
         return tables;
       };
 
-      // Извлекаем таблицы из исходного текста
-      console.log('Тип text:', typeof text);
-      console.log('Значение text существует:', Boolean(text));
-      const originalTables = extractHTMLTablesFromOriginal(text as string);
+      // Простая функция для исправления дублирующихся тегов tr в таблице
+      const fixDuplicateTrTags = (html: string): string => {
+        if (!html) return '';
+
+        // Исправляем последовательности <tr><tr> на <tr>
+        let fixed = html.replace(/<tr[^>]*>\s*<tr[^>]*>/gi, '<tr>');
+
+        // Исправляем последовательности </tr></tr> на </tr>
+        fixed = fixed.replace(/<\/tr>\s*<\/tr>/gi, '</tr>');
+
+        return fixed;
+      };
 
       // Функция для исправления синтаксиса Markdown изображений
       const fixMarkdownImages = (markdown: string) => {
@@ -207,11 +220,12 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
         return fixedMarkdown;
       };
 
-      // Функция для извлечения всех изображений из Markdown
+      // Функция для извлечения всех изображений из Markdown с их позициями
       const extractImages = (markdown: string) => {
         if (!markdown) return [];
 
-        const images: Array<{ alt: string; url: string }> = [];
+        const images: Array<{ alt: string; url: string; position: number }> =
+          [];
         const imgRegex = /!\[(.*?)\]\((.*?)\)/g;
         let match;
 
@@ -219,7 +233,11 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
           images.push({
             alt: match[1].trim(),
             url: match[2].trim(),
+            position: match.index,
           });
+          console.log(
+            `Найдено изображение в позиции ${match.index} с alt текстом: ${match[1].trim()}`
+          );
         }
 
         return images;
@@ -247,40 +265,272 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
       // Функция для поиска и обработки блоков, которые должны быть изображениями
       const processBlocksWithImages = (
         blocks: any[],
-        images: Array<{ alt: string; url: string }>
+        images: Array<{ alt: string; url: string; position: number }>
       ) => {
+        if (!images || !images.length) return blocks;
+
         // Клонируем блоки для работы
         const newBlocks = [...blocks];
-        let imageIndex = 0;
+        console.log(
+          'Начинаем вставку изображений, всего изображений:',
+          images.length
+        );
 
-        // Для каждого изображения
-        for (let i = 0; i < images.length && imageIndex < images.length; i++) {
-          const image = images[imageIndex];
-
-          // Ищем блок, который может быть заголовком или параграфом с текстом изображения
-          const blockIndex = newBlocks.findIndex((block) => {
-            if (!block.content || !block.content.length) return false;
-
-            // Проверяем, содержит ли блок текст, похожий на alt-текст изображения
-            const blockText = block.content[0]?.text;
-            return (
-              blockText &&
-              (blockText.includes(image.alt) || image.alt.includes(blockText))
+        // Детальный лог существующих блоков
+        console.log('АНАЛИЗ СУЩЕСТВУЮЩИХ БЛОКОВ ДЛЯ ВСТАВКИ ИЗОБРАЖЕНИЙ:');
+        newBlocks.forEach((block, idx) => {
+          if (block.content && block.content.length) {
+            const text = block.content
+              .map((item: any) => item.text || '')
+              .join(' ');
+            console.log(
+              `Блок [${idx}], тип: ${block.type}, текст: "${text.substring(0, 50)}..."`
             );
-          });
+          } else {
+            console.log(`Блок [${idx}], тип: ${block.type}, без текста`);
+          }
+        });
 
-          if (blockIndex !== -1) {
-            // Вставляем блок изображения после найденного блока
-            const imageBlock = createImageBlock(image.url, image.alt);
-            newBlocks.splice(blockIndex + 1, 0, imageBlock);
-            imageIndex++;
+        // Получаем исходный текст
+        const originalText = text as string;
+        if (!originalText || originalText.length === 0) {
+          console.warn(
+            'Исходный текст пустой, не можем определить позиции блоков'
+          );
+          return newBlocks;
+        }
+
+        // Сортируем изображения по их позициям
+        const sortedImages = [...images].sort(
+          (a, b) => a.position - b.position
+        );
+        console.log(
+          'Отсортированные изображения по позиции:',
+          sortedImages.map((img) => ({
+            position: img.position,
+            alt: img.alt.substring(0, 30),
+          }))
+        );
+
+        // Создаем массив изображений для вставки, по аналогии с таблицами
+        const imagesToInsert: Array<{
+          imageBlock: any;
+          position: number;
+          insertAfterBlock?: number;
+        }> = [];
+
+        // Подготавливаем изображения для вставки
+        for (const imageData of sortedImages) {
+          try {
+            const imageBlock = createImageBlock(imageData.url, imageData.alt);
+
+            imagesToInsert.push({
+              imageBlock,
+              position: imageData.position,
+            });
+
+            console.log(
+              `Подготовлен блок изображения с alt: "${imageData.alt.substring(0, 30)}" для позиции ${imageData.position}`
+            );
+          } catch (error) {
+            console.error('Ошибка при создании блока изображения:', error);
           }
         }
 
-        // Добавляем оставшиеся изображения в конец документа
-        for (let i = imageIndex; i < images.length; i++) {
-          const imageBlock = createImageBlock(images[i].url, images[i].alt);
-          newBlocks.push(imageBlock);
+        // Для более точного расположения изображений будем использовать содержимое блоков и исходного текста
+        // Создадим карту соответствия исходного текста и блоков в редакторе, по аналогии с таблицами
+        const blockTexts: Array<{
+          blockIndex: number;
+          text: string;
+          startPos: number; // Примерная начальная позиция текста этого блока в исходном тексте
+          endPos: number; // Примерная конечная позиция текста этого блока в исходном тексте
+        }> = [];
+
+        let currentPosition = 0;
+
+        // Извлекаем текст из каждого блока и оцениваем его позицию в исходном тексте
+        for (let i = 0; i < newBlocks.length; i++) {
+          const block = newBlocks[i];
+          let blockText = '';
+
+          if (block.content && block.content.length) {
+            blockText = block.content
+              .map((item: any) => item.text || '')
+              .join(' ');
+          }
+
+          // Пропускаем пустые блоки и нетекстовые блоки
+          if (blockText.length === 0 && block.type !== 'paragraph') {
+            continue;
+          }
+
+          // Находим этот текст в исходном тексте
+          const textPosition = originalText.indexOf(blockText, currentPosition);
+
+          if (textPosition !== -1) {
+            // Текст блока найден в исходном тексте
+            blockTexts.push({
+              blockIndex: i,
+              text: blockText,
+              startPos: textPosition,
+              endPos: textPosition + blockText.length,
+            });
+
+            // Обновляем текущую позицию поиска, чтобы избежать повторного нахождения того же текста
+            currentPosition = textPosition + blockText.length;
+
+            console.log(
+              `Блок [${i}] найден в исходном тексте на позиции ${textPosition}`
+            );
+          } else {
+            // Если точное совпадение не найдено, пробуем искать по частям текста
+            if (blockText.length > 100) {
+              const shortText = blockText.substring(0, 100);
+              const shortPosition = originalText.indexOf(
+                shortText,
+                currentPosition
+              );
+
+              if (shortPosition !== -1) {
+                blockTexts.push({
+                  blockIndex: i,
+                  text: blockText,
+                  startPos: shortPosition,
+                  endPos: shortPosition + blockText.length,
+                });
+
+                currentPosition = shortPosition + blockText.length;
+                console.log(
+                  `Блок [${i}] найден по сокращенному тексту на позиции ${shortPosition}`
+                );
+                continue;
+              }
+            }
+
+            if (blockText.length > 50) {
+              const shortText = blockText.substring(0, 50);
+              const shortPosition = originalText.indexOf(
+                shortText,
+                currentPosition
+              );
+
+              if (shortPosition !== -1) {
+                blockTexts.push({
+                  blockIndex: i,
+                  text: blockText,
+                  startPos: shortPosition,
+                  endPos: shortPosition + blockText.length,
+                });
+
+                currentPosition = shortPosition + blockText.length;
+                console.log(
+                  `Блок [${i}] найден по короткому тексту на позиции ${shortPosition}`
+                );
+                continue;
+              }
+            }
+
+            // Если все еще не нашли, используем приблизительную оценку
+            blockTexts.push({
+              blockIndex: i,
+              text: blockText,
+              startPos: currentPosition,
+              endPos: currentPosition + blockText.length,
+            });
+
+            currentPosition += blockText.length;
+
+            console.log(
+              `Блок [${i}] не найден точно, приблизительная позиция: ${currentPosition}`
+            );
+          }
+        }
+
+        console.log(
+          'Блоки с их позициями:',
+          blockTexts.map((b) => ({
+            blockIndex: b.blockIndex,
+            startPos: b.startPos,
+            text: b.text.substring(0, 30) + '...',
+          }))
+        );
+
+        // Сортируем блоки по их позициям в исходном тексте
+        blockTexts.sort((a, b) => a.startPos - b.startPos);
+
+        // Для каждого изображения находим наиболее подходящий блок для вставки
+        for (const imageInfo of imagesToInsert) {
+          let bestBlockIndex = -1;
+
+          // Ищем блок, который находится перед позицией изображения
+          for (let i = 0; i < blockTexts.length; i++) {
+            const blockInfo = blockTexts[i];
+
+            // Если блок заканчивается до начала изображения
+            if (blockInfo.endPos <= imageInfo.position) {
+              bestBlockIndex = blockInfo.blockIndex;
+            } else if (blockInfo.startPos > imageInfo.position) {
+              // Если мы нашли блок, который начинается после изображения,
+              // то изображение должно идти перед этим блоком
+              if (i > 0) {
+                bestBlockIndex = blockTexts[i - 1].blockIndex;
+              } else {
+                bestBlockIndex = 0; // В начале документа
+              }
+              break;
+            }
+          }
+
+          // Если не нашли подходящий блок, вставим изображение в конец
+          if (bestBlockIndex === -1) {
+            bestBlockIndex = newBlocks.length - 1;
+          }
+
+          console.log(
+            `Для изображения в позиции ${imageInfo.position} определен блок для вставки: ${bestBlockIndex}`
+          );
+          imageInfo.insertAfterBlock = bestBlockIndex;
+        }
+
+        // Сортируем изображения для вставки от конца к началу,
+        // чтобы не нарушать индексы уже вставленных изображений
+        const sortedForInsertion = [...imagesToInsert].sort(
+          (a, b) => (b.insertAfterBlock || 0) - (a.insertAfterBlock || 0)
+        );
+
+        // Вставляем изображения
+        for (const imageInfo of sortedForInsertion) {
+          if (imageInfo.insertAfterBlock !== undefined) {
+            const insertPosition = imageInfo.insertAfterBlock + 1;
+            console.log(
+              `Вставляем изображение после блока ${imageInfo.insertAfterBlock}, точка вставки: ${insertPosition}`
+            );
+
+            // Логируем блок, после которого вставляем
+            if (imageInfo.insertAfterBlock < newBlocks.length) {
+              const block = newBlocks[imageInfo.insertAfterBlock];
+              if (block.content && block.content.length) {
+                const blockText = block.content
+                  .map((item: any) => item.text || '')
+                  .join(' ');
+                console.log(
+                  `Блок перед вставкой: "${blockText.substring(0, 50)}..."`
+                );
+              } else {
+                console.log(
+                  `Блок перед вставкой: тип ${block.type}, без текста`
+                );
+              }
+            }
+
+            newBlocks.splice(insertPosition, 0, imageInfo.imageBlock);
+          } else {
+            // Если не нашли точку вставки, добавляем изображение в конец
+            console.log(
+              'Не найдена точка вставки, добавляем изображение в конец документа'
+            );
+            newBlocks.push(imageInfo.imageBlock);
+          }
         }
 
         return newBlocks;
@@ -320,7 +570,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
       // Функция для обработки блоков с таблицами
       const processBlocksWithTables = async (
         blocks: any[],
-        tables: string[]
+        tables: Array<{ html: string; position: number }>
       ) => {
         if (!tables || !tables.length) return blocks;
 
@@ -328,8 +578,42 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
         const newBlocks = [...blocks];
         console.log('Начинаем вставку таблиц, всего таблиц:', tables.length);
 
-        for (const table of tables) {
+        // Детальный лог существующих блоков
+        console.log('АНАЛИЗ СУЩЕСТВУЮЩИХ БЛОКОВ:');
+        newBlocks.forEach((block, idx) => {
+          if (block.content && block.content.length) {
+            const text = block.content
+              .map((item: any) => item.text || '')
+              .join(' ');
+            console.log(
+              `Блок [${idx}], тип: ${block.type}, текст: "${text.substring(0, 50)}..."`
+            );
+          } else {
+            console.log(`Блок [${idx}], тип: ${block.type}, без текста`);
+          }
+        });
+
+        // Сортируем таблицы по их позициям
+        const sortedTables = [...tables].sort(
+          (a, b) => a.position - b.position
+        );
+        console.log(
+          'Отсортированные таблицы по позиции:',
+          sortedTables.map((t) => t.position)
+        );
+
+        // Создаем массив таблиц готовых к вставке
+        const tablesToInsert: Array<{
+          blocks: any[];
+          position: number;
+          insertAfterBlock?: number;
+        }> = [];
+
+        // Сначала преобразуем все таблицы в блоки
+        for (const tableData of sortedTables) {
           try {
+            const table = tableData.html;
+
             // Проверяем, что таблица валидная
             if (!table || table.trim() === '') {
               console.warn('Пустая таблица, пропускаем');
@@ -341,9 +625,8 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
 
             if (typeof editor.tryParseHTMLToBlocks === 'function') {
               try {
-                console.log(table, 'TABLE');
+                console.log('Парсим таблицу в позиции:', tableData.position);
                 tableBlocks = await editor.tryParseHTMLToBlocks(table);
-                console.log(tableBlocks, 'TABLE BLOCKS');
               } catch (parseError) {
                 console.error('Ошибка при парсинге HTML в блоки:', parseError);
               }
@@ -360,84 +643,165 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
               }
             }
 
-            // Ищем место для вставки таблицы
-            // 1. Проверяем, есть ли в HTML-таблице какой-то заголовок
-            const tableCaption = table.match(/<caption.*?>(.*?)<\/caption>/i);
-            const tableCaptionText = tableCaption ? tableCaption[1] : '';
-
-            // 2. Также получаем первую строку таблицы для поиска
-            const firstTableRow = table.match(/<tr.*?>(.*?)<\/tr>/i);
-            const firstRowText = firstTableRow ? firstTableRow[1] : '';
-
             console.log(
-              'Ищем место для таблицы с заголовком:',
-              tableCaptionText
+              `Создано ${tableBlocks.length} блоков для таблицы в позиции ${tableData.position}`
             );
 
-            // 3. Найдем наиболее подходящее место для вставки таблицы
-            let insertIndex = -1;
+            // Добавляем таблицу в список для вставки
+            tablesToInsert.push({
+              blocks: tableBlocks,
+              position: tableData.position,
+            });
+          } catch (error) {
+            console.error('Ошибка при обработке таблицы:', error);
+          }
+        }
 
-            // Сначала ищем блок с заголовком таблицы (если есть)
-            if (tableCaptionText) {
-              insertIndex = newBlocks.findIndex((block) => {
-                if (!block.content || !block.content.length) return false;
-                const blockText = block.content[0]?.text || '';
-                return blockText.includes(tableCaptionText);
-              });
+        // После преобразования всех таблиц, находим точки вставки
+        if (tablesToInsert.length > 0) {
+          console.log(
+            'Определяем точки вставки таблиц на основе их позиций в исходном тексте'
+          );
+
+          // Для более точного расположения таблиц будем использовать содержимое блоков и исходного текста
+          // Создадим карту соответствия исходного текста и блоков в редакторе
+
+          // Подготовим массив блоков с их текстом для поиска
+          const blockTexts: Array<{
+            blockIndex: number;
+            text: string;
+            startPos: number; // Примерная начальная позиция текста этого блока в исходном тексте
+            endPos: number; // Примерная конечная позиция текста этого блока в исходном тексте
+          }> = [];
+
+          let currentPosition = 0;
+
+          // Извлекаем текст из каждого блока и оцениваем его позицию в исходном тексте
+          for (let i = 0; i < newBlocks.length; i++) {
+            const block = newBlocks[i];
+            let blockText = '';
+
+            if (block.content && block.content.length) {
+              blockText = block.content
+                .map((item: any) => item.text || '')
+                .join(' ');
             }
 
-            // Если блок с заголовком не найден, ищем подходящий абзац,
-            // который может предшествовать таблице
-            if (insertIndex === -1) {
-              // Ищем блоки, которые могут предшествовать таблице
-              const potentialTableHeaders = [
-                'Таблица',
-                'Table',
-                'Диагностические критерии',
-                'Клинические признаки',
-                'Гистопатологические признаки',
-              ];
+            // Пропускаем пустые блоки и нетекстовые блоки
+            if (blockText.length === 0 && block.type !== 'paragraph') {
+              continue;
+            }
 
-              for (let i = 0; i < newBlocks.length; i++) {
-                const block = newBlocks[i];
-                if (!block.content || !block.content.length) continue;
+            // Находим этот текст в исходном тексте
+            const originalText = text as string;
+            const textPosition = originalText.indexOf(
+              blockText,
+              currentPosition
+            );
 
-                const blockText = block.content[0]?.text || '';
+            if (textPosition !== -1) {
+              // Текст блока найден в исходном тексте
+              blockTexts.push({
+                blockIndex: i,
+                text: blockText,
+                startPos: textPosition,
+                endPos: textPosition + blockText.length,
+              });
 
-                // Проверяем, содержит ли блок текст, который может быть заголовком для таблицы
-                const isTableHeader = potentialTableHeaders.some((header) =>
-                  blockText.includes(header)
-                );
+              // Обновляем текущую позицию поиска, чтобы избежать повторного нахождения того же текста
+              currentPosition = textPosition + blockText.length;
 
-                if (isTableHeader) {
-                  console.log('Найден блок-кандидат для таблицы:', blockText);
-                  insertIndex = i;
-                  break;
+              console.log(
+                `Блок [${i}] найден в исходном тексте на позиции ${textPosition}`
+              );
+            } else {
+              // Если точное совпадение не найдено, используем приблизительную оценку
+              blockTexts.push({
+                blockIndex: i,
+                text: blockText,
+                startPos: currentPosition,
+                endPos: currentPosition + blockText.length,
+              });
+
+              currentPosition += blockText.length;
+
+              console.log(
+                `Блок [${i}] не найден точно, приблизительная позиция: ${currentPosition}`
+              );
+            }
+          }
+
+          console.log('Блоки с их позициями:', blockTexts);
+
+          // Для каждой таблицы находим наиболее подходящий блок для вставки
+          for (const tableInfo of tablesToInsert) {
+            let bestBlockIndex = -1;
+
+            // Ищем блок, который находится перед позицией таблицы
+            for (let i = 0; i < blockTexts.length; i++) {
+              const blockInfo = blockTexts[i];
+
+              // Если блок заканчивается до начала таблицы
+              if (blockInfo.endPos <= tableInfo.position) {
+                bestBlockIndex = blockInfo.blockIndex;
+              } else if (blockInfo.startPos > tableInfo.position) {
+                // Если мы нашли блок, который начинается после таблицы,
+                // то таблица должна идти перед этим блоком
+                if (i > 0) {
+                  bestBlockIndex = blockTexts[i - 1].blockIndex;
+                } else {
+                  bestBlockIndex = 0; // В начале документа
                 }
+                break;
               }
             }
 
-            // Если нашли подходящее место
-            if (insertIndex !== -1) {
-              console.log(
-                `Вставляем таблицу после блока с индексом ${insertIndex}`
-              );
-              newBlocks.splice(insertIndex + 1, 0, ...tableBlocks);
-              console.log(
-                'Таблица вставлена после блока с индексом:',
-                insertIndex
-              );
-              console.log('Новый блок:', newBlocks[insertIndex + 1]);
-              console.log('Все блоки:', newBlocks);
-            } else {
-              // Если место не нашли, добавляем в конец
-              console.log(
-                'Подходящее место для таблицы не найдено, добавляем в конец'
-              );
-              newBlocks.push(...tableBlocks);
+            // Если не нашли подходящий блок, вставим таблицу в конец
+            if (bestBlockIndex === -1) {
+              bestBlockIndex = newBlocks.length - 1;
             }
-          } catch (error) {
-            console.error('Ошибка при обработке таблицы:', error);
+
+            console.log(
+              `Для таблицы в позиции ${tableInfo.position} определен блок для вставки: ${bestBlockIndex}`
+            );
+            tableInfo.insertAfterBlock = bestBlockIndex;
+          }
+
+          // Сортируем таблицы для вставки от конца к началу,
+          // чтобы не нарушать индексы уже вставленных таблиц
+          const sortedForInsertion = [...tablesToInsert].sort(
+            (a, b) => (b.insertAfterBlock || 0) - (a.insertAfterBlock || 0)
+          );
+
+          // Вставляем таблицы
+          for (const tableInfo of sortedForInsertion) {
+            if (tableInfo.insertAfterBlock !== undefined) {
+              const insertPosition = tableInfo.insertAfterBlock + 1;
+              console.log(
+                `Вставляем таблицу после блока ${tableInfo.insertAfterBlock}, точка вставки: ${insertPosition}`
+              );
+
+              // Логируем блок, после которого вставляем
+              if (tableInfo.insertAfterBlock < newBlocks.length) {
+                const block = newBlocks[tableInfo.insertAfterBlock];
+                if (block.content && block.content.length) {
+                  const blockText = block.content
+                    .map((item: any) => item.text || '')
+                    .join(' ');
+                  console.log(
+                    `Блок перед вставкой: "${blockText.substring(0, 50)}..."`
+                  );
+                }
+              }
+
+              newBlocks.splice(insertPosition, 0, ...tableInfo.blocks);
+            } else {
+              // Если не нашли точку вставки, добавляем таблицу в конец
+              console.log(
+                'Не найдена точка вставки, добавляем таблицу в конец документа'
+              );
+              newBlocks.push(...tableInfo.blocks);
+            }
           }
         }
 
@@ -450,6 +814,11 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
 
       // Извлекаем все изображения из Markdown
       const images = extractImages(fixedText);
+
+      // Извлекаем таблицы из исходного текста
+      console.log('Тип text:', typeof text);
+      console.log('Значение text существует:', Boolean(text));
+      const originalTables = extractHTMLTablesFromOriginal(text as string);
 
       // Парсим Markdown в блоки
       const blocksText = await editor.tryParseMarkdownToBlocks(fixedText);

@@ -58,6 +58,7 @@ export const getArticles = async ({
     query: query,
   });
 
+  console.log(response, 'RESPONSE AUE');
   // Обрабатываем markdown поля в статьях
   const data = response.data as unknown as ArticlesResponse;
 

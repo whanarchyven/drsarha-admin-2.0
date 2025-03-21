@@ -98,7 +98,7 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
       else if (formattedStartDate && !formattedEndDate) {
         try {
           const startDate = new Date(formattedStartDate);
-          const nextDay = addDays(startDate, 2);
+          const nextDay = addDays(startDate, 1);
           formattedEndDate = format(nextDay, "yyyy-MM-dd'T'00:00:00'Z'");
         } catch (error) {
           console.error('Ошибка при автоматическом создании end_date:', error);
@@ -118,7 +118,7 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
           if (res.data) {
             console.log(res, 'AUE RESPONSE');
             setArticlesInfo({
-              all: res.metadata.all,
+              all: res.metadata.total,
               published: res.metadata.published,
               deleted: res.metadata.deleted,
               translated: res.metadata.translated,

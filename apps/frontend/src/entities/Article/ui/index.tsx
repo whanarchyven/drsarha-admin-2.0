@@ -241,7 +241,7 @@ const ArticleCard = (props: ArticleCardProps) => {
               </Button>
             </Link>
           )}
-          <Link href={`/articles/${props.id}/edit`} target="_blank">
+          <Link href={`/articles/${props._id}/edit`} target="_blank">
             <Button variant="cPrimary" className="">
               Редактировать
             </Button>
