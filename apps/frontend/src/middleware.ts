@@ -91,7 +91,7 @@ export async function middleware(request: NextRequest) {
   const isPublic = isPublicPage(requestedPath);
 
   // Если пользователь не авторизован и путь не публичный
-  if (!authToken && !isPublic) {
+  if (!authToken && !isPublic && !requestedPath.includes('/login')) {
     console.log(
       `Перенаправление на страницу входа: ${requestedPath} не является публичной`
     );
