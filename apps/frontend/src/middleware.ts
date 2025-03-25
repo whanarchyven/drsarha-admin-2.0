@@ -12,7 +12,6 @@ const roleBasedAccess = {
   '/': ['admin', 'editor', 'developer'],
   '/subscribers': ['admin'],
   '/users': ['admin'],
-  '/login': ['developer', 'admin', 'editor'],
   '/ankets': ['admin'],
   '/ankets/*': ['admin'],
 };
@@ -90,8 +89,13 @@ export async function middleware(request: NextRequest) {
   const authToken = request.cookies.get('authToken')?.value;
   const isPublic = isPublicPage(requestedPath);
 
+  // Если путь публичный, всегда пропускаем запрос независимо от наличия токена
+  if (isPublic) {
+    return NextResponse.next();
+  }
+
   // Если пользователь не авторизован и путь не публичный
-  if (!authToken && !isPublic && !requestedPath.includes('/login')) {
+  if (!authToken) {
     console.log(
       `Перенаправление на страницу входа: ${requestedPath} не является публичной`
     );
@@ -99,39 +103,37 @@ export async function middleware(request: NextRequest) {
   }
 
   // Если есть токен авторизации, проверяем его
-  if (authToken) {
-    const decodedToken: any = await verifyToken(authToken);
+  const decodedToken: any = await verifyToken(authToken);
 
-    // Если токен невалидный, перенаправляем на страницу входа
-    if (!decodedToken) {
-      console.log('Невалидный токен, перенаправляем на вход');
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('authToken');
-      return response;
-    }
+  // Если токен невалидный, перенаправляем на страницу входа
+  if (!decodedToken) {
+    console.log('Невалидный токен, перенаправляем на вход');
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.delete('authToken');
+    return response;
+  }
 
-    // Получаем роль пользователя и срок действия подписки
-    const userRole: string = decodedToken.role;
-    const subscribeTill =
-      decodedToken.subscribeTill ||
-      new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(); // Если нет срока подписки, устанавливаем на год вперед
+  // Получаем роль пользователя и срок действия подписки
+  const userRole: string = decodedToken.role;
+  const subscribeTill =
+    decodedToken.subscribeTill ||
+    new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(); // Если нет срока подписки, устанавливаем на год вперед
 
-    // Проверяем, не истекла ли подписка
+  // Проверяем, не истекла ли подписка
 
-    // Проверяем доступ на основе роли
-    const hasAccess = checkRoleBasedAccess(
-      requestedPath,
-      userRole,
-      subscribeTill
+  // Проверяем доступ на основе роли
+  const hasAccess = checkRoleBasedAccess(
+    requestedPath,
+    userRole,
+    subscribeTill
+  );
+
+  // Если нет доступа, перенаправляем на главную вместо /login
+  if (!hasAccess) {
+    console.log(
+      `Нет доступа к странице ${requestedPath} для роли ${userRole}`
     );
-
-    // Если нет доступа, перенаправляем на главную
-    if (!hasAccess) {
-      console.log(
-        `Нет доступа к странице ${requestedPath} для роли ${userRole}`
-      );
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
