@@ -10,7 +10,7 @@ export interface ErrorResponse {
 
 export function createArticlesApiController() {
   // Создаем экземпляр сервиса для работы с внешним API
-  const editorApiService = new AxiosApiService('https://drsarha-admin-backend.dev.reflectai.pro');
+  const editorApiService = new AxiosApiService('https://drsarha-admin-backend.reflectai.pro');
   editorApiService.setAuthToken('39fb8934e5c24e3da12d4549e6d9c679a48c97dc416f45a6b5eea781128baf05')
 
   const constructQueryString = (query: any) => {
