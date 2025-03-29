@@ -10,7 +10,7 @@ export interface ErrorResponse {
 
 export function createArticlesApiController() {
   // Создаем экземпляр сервиса для работы с внешним API
-  const editorApiService = new AxiosApiService('https://drsarha-admin-backend.reflectai.pro');
+  const editorApiService = new AxiosApiService('https://drsarha-admin-backend.dev.reflectai.pro');
   editorApiService.setAuthToken('39fb8934e5c24e3da12d4549e6d9c679a48c97dc416f45a6b5eea781128baf05')
 
   const constructQueryString = (query: any) => {
@@ -75,8 +75,10 @@ export function createArticlesApiController() {
   .get('/articles/:id', async ({ params: { id } }) => {
     try {
       const article = await editorApiService.get<any>(`/articles/${id}`);
+      console.log(`/articles/${id}`)
       return article;
     } catch (error) {
+      console.log(error.data,"ERROR")
       throw new Error(`Ошибка при получении статьи: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, {
