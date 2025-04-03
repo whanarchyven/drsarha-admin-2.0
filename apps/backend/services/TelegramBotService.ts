@@ -38,22 +38,39 @@ export class TelegramBotService {
 
     try {
       let message = '';
+      let buttonText = '';
 
       // Формируем сообщение в зависимости от типа контента
       if (params.message_type === 'article') {
-        message = `На нашей платформе новая статья!\n\n <strong>${params.title}</strong>\n<a href="${params.link}">Перейти к чтению</a>`;
+        message = `На нашей платформе новая статья!\n\n<strong>${params.title}</strong>`;
+        buttonText = 'Перейти к чтению';
       } else if (params.message_type === 'news') {
-        message = `Новость от Dr. Sarha:\n\n <strong>${params.title}</strong>\n<a href="${params.link}">Подробнее</a>`;
+        message = `Новость от Dr. Sarha:\n\n<strong>${params.title}</strong>`;
+        buttonText = 'Подробнее';
       } else {
-        message = `Новость от Dr. Sarha:\n\n <strong>${params.title}</strong>\n<a href="${params.link}">Подробнее</a>`;
+        message = `Новость от Dr. Sarha:\n\n<strong>${params.title}</strong>`;
+        buttonText = 'Подробнее';
       }
+
+      // Создаем inline-клавиатуру с кнопкой
+      const inlineKeyboard = {
+        inline_keyboard: [
+          [
+            {
+              text: buttonText,
+              url: params.link
+            }
+          ]
+        ]
+      };
 
       // Отправляем сообщение через Telegram Bot API
       const response = await axios.post(`https://api.telegram.org/bot${this.token}/sendMessage`, {
         chat_id: this.channelId,
         text: message,
         parse_mode: 'HTML',
-        disable_web_page_preview: false
+        disable_web_page_preview: true,
+        reply_markup: inlineKeyboard
       });
 
       return { success: true, data: response.data };

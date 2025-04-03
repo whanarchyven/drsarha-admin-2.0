@@ -133,7 +133,13 @@ export function createArticlesApiController() {
         const article = await editorApiService.get<any>(`/articles/${id}`);
         previousPublishedState = article?.meta?.isPublished || false;
         title = article?.title?.ru?.human || article?.title?.ru?.ai || article?.title?.raw || '';
-        articleLink = `https://drsarha.ru/article?url=${article?.articleUrl}`;
+        // Используем URL-параметры в ссылке статьи, на основе articleUrl
+        const articleUrl = article?.articleUrl;
+        if (articleUrl) {
+          articleLink = `https://drsarha.ru/article?url=${encodeURIComponent(articleUrl)}`;
+        } else {
+          articleLink = `https://drsarha.ru/article/${id}`;
+        }
       } catch (error) {
         console.log('Не удалось получить предыдущее состояние статьи:', error);
       }
@@ -270,8 +276,8 @@ export function createArticlesApiController() {
           title = res?.title?.ru?.human || res?.title?.ru?.ai || res?.title?.raw || 'Новая новость';
         }
         
-        // Формируем ссылку на новость
-        const newsLink = `https://drsarha.ru/news/${id}`;
+        // Формируем ссылку на новость (убеждаемся, что ID корректно обрабатывается)
+        const newsLink = `https://drsarha.ru/news/${encodeURIComponent(id)}`;
         
         // Отправляем уведомление в Telegram
         await telegramBotService.sendNotification({
