@@ -127,11 +127,13 @@ export function createArticlesApiController() {
       // Получаем предыдущее состояние статьи, чтобы проверить изменение статуса публикации
       let previousPublishedState = false;
       let title = '';
+      let articleLink = '';
       
       try {
         const article = await editorApiService.get<any>(`/articles/${id}`);
         previousPublishedState = article?.meta?.isPublished || false;
         title = article?.title?.ru?.human || article?.title?.ru?.ai || article?.title?.raw || '';
+        articleLink = `https://drsarha.ru/article?url=${article?.articleUrl}`;
       } catch (error) {
         console.log('Не удалось получить предыдущее состояние статьи:', error);
       }
@@ -149,7 +151,7 @@ export function createArticlesApiController() {
         }
         
         // Формируем ссылку на статью
-        const articleLink = `https://drsarha.ru/articles/${id}`;
+        
         
         // Отправляем уведомление в Telegram
         await telegramBotService.sendNotification({
