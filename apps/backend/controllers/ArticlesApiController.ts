@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { AxiosApiService } from '../services/AxiosApiService';
+import { TelegramBotService } from '../services/TelegramBotService';
 import type { AxiosError } from 'axios';
 
 const authHeader = process.env.EDITOR_ID
@@ -12,6 +13,9 @@ export function createArticlesApiController() {
   // Создаем экземпляр сервиса для работы с внешним API
   const editorApiService = new AxiosApiService('https://drsarha-admin-backend.reflectai.pro');
   editorApiService.setAuthToken('39fb8934e5c24e3da12d4549e6d9c679a48c97dc416f45a6b5eea781128baf05')
+  
+  // Создаем экземпляр сервиса для Telegram бота
+  const telegramBotService = new TelegramBotService();
 
   const constructQueryString = (query: any) => {
     return Object.entries(query)
@@ -78,7 +82,8 @@ export function createArticlesApiController() {
       console.log(`/articles/${id}`)
       return article;
     } catch (error) {
-      console.log(error.data,"ERROR")
+      const errorData = error && typeof error === 'object' && 'data' in error ? error.data : null;
+      console.log(errorData, "ERROR");
       throw new Error(`Ошибка при получении статьи: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, {
@@ -117,10 +122,43 @@ export function createArticlesApiController() {
   })
 
   .patch('/articles/:id', async ({ params: { id }, body }) => {
-
+    console.log(body,"AUEEEEE")
     try {
-      const res=await editorApiService.patch(`/articles/${id}`,{...body});
-      console.log(res.title.ru.human,"RES")
+      // Получаем предыдущее состояние статьи, чтобы проверить изменение статуса публикации
+      let previousPublishedState = false;
+      let title = '';
+      
+      try {
+        const article = await editorApiService.get<any>(`/articles/${id}`);
+        previousPublishedState = article?.meta?.isPublished || false;
+        title = article?.title?.ru?.human || article?.title?.ru?.ai || article?.title?.raw || '';
+      } catch (error) {
+        console.log('Не удалось получить предыдущее состояние статьи:', error);
+      }
+      
+      // Отправляем запрос на обновление
+      const res = await editorApiService.patch<any>(`/articles/${id}`, {...body});
+      
+      // Проверяем, изменился ли статус публикации на "опубликовано"
+      if (body.isPublished === true && !previousPublishedState) {
+        console.log('Статья была опубликована, отправляем уведомление в Telegram');
+        
+        // Получаем заголовок, если он не был получен ранее
+        if (!title) {
+          title = res?.title?.ru?.human || res?.title?.ru?.ai || res?.title?.raw || 'Новая статья';
+        }
+        
+        // Формируем ссылку на статью
+        const articleLink = `https://drsarha.ru/articles/${id}`;
+        
+        // Отправляем уведомление в Telegram
+        await telegramBotService.sendNotification({
+          message_type: 'article',
+          title,
+          link: articleLink
+        });
+      }
+      
       return { message: 'Статья обновлена' };
     } catch (error: unknown) {
       const newErr = error as AxiosError['response']
@@ -189,5 +227,83 @@ export function createArticlesApiController() {
     })
   })
 
+  .get('/news/:id', async ({ params: { id } }) => {
+    try {
+      const news = await editorApiService.get<any>(`/news/${id}`);
+      return news;
+    } catch (error) {
+      const errorData = error && typeof error === 'object' && 'data' in error ? error.data : null;
+      console.log(errorData, "ERROR");
+      throw new Error(`Ошибка при получении новости: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, {
+    params: t.Object({
+      id: t.String()
+    })
+  })
+
+  .patch('/news/:id', async ({ params: { id }, body }) => {
+    try {
+      // Получаем предыдущее состояние новости, чтобы проверить изменение статуса публикации
+      let previousPublishedState = false;
+      let title = '';
+      
+      try {
+        const news = await editorApiService.get<any>(`/news/${id}`);
+        previousPublishedState = news?.meta?.isPublished || false;
+        title = news?.title?.ru?.human || news?.title?.ru?.ai || news?.title?.raw || '';
+      } catch (error) {
+        console.log('Не удалось получить предыдущее состояние новости:', error);
+      }
+      
+      // Отправляем запрос на обновление
+      const res = await editorApiService.patch<any>(`/news/${id}`, {...body});
+      
+      // Проверяем, изменился ли статус публикации на "опубликовано"
+      if (body.isPublished === true && !previousPublishedState) {
+        console.log('Новость была опубликована, отправляем уведомление в Telegram');
+        
+        // Получаем заголовок, если он не был получен ранее
+        if (!title) {
+          title = res?.title?.ru?.human || res?.title?.ru?.ai || res?.title?.raw || 'Новая новость';
+        }
+        
+        // Формируем ссылку на новость
+        const newsLink = `https://drsarha.ru/news/${id}`;
+        
+        // Отправляем уведомление в Telegram
+        await telegramBotService.sendNotification({
+          message_type: 'news',
+          title,
+          link: newsLink
+        });
+      }
+      
+      return { message: 'Новость обновлена' };
+    } catch (error: unknown) {
+      const newErr = error as AxiosError['response']
+      const newErrData = newErr?.data as ErrorResponse
+      return new Error(`Ошибка при обновлении новости: ${newErrData.detail}`);
+    }
+  }, {
+    params: t.Object({
+      id: t.String()
+    }),
+    body: t.Object({
+      title_raw: t.Optional(t.String()),
+      content_raw: t.Optional(t.String()),
+      category: t.Optional(t.String()),
+      isPublished: t.Optional(t.Boolean()),
+      publishedDate: t.Optional(t.String()),
+      authors: t.Optional(t.Array(t.String())),
+      languages: t.Optional(t.Array(t.String())),
+      isDeleted: t.Optional(t.Boolean()),
+      hasTranslation: t.Optional(t.Boolean()),
+      title_ru_ai: t.Optional(t.String()),
+      title_ru_human: t.Optional(t.String()),
+      content_ru_ai: t.Optional(t.String()),
+      content_ru_human: t.Optional(t.String()),
+    })
+  })
     
 }

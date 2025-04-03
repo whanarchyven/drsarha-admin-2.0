@@ -97,7 +97,7 @@ const ArticleCard = (props: ArticleCardProps) => {
   const [openUnpublishDialog, setOpenUnpublishDialog] = useState(false);
 
   const handleDelete = async () => {
-    const res = await eden.editor.articles({ id: props.id }).delete();
+    const res = await eden.editor.articles({ id: props._id }).delete();
     if (res?.error) {
       toast.error(res.error.value.message);
     } else {
@@ -107,7 +107,7 @@ const ArticleCard = (props: ArticleCardProps) => {
   };
 
   const handleRestore = async () => {
-    const res = await eden.editor.articles({ id: props.id }).restore.post();
+    const res = await eden.editor.articles({ id: props._id }).restore.post();
     if (res?.error) {
       toast.error(res.error.value.message);
     } else {
@@ -117,7 +117,7 @@ const ArticleCard = (props: ArticleCardProps) => {
   };
 
   const handlePublish = async () => {
-    const res = await eden.editor.articles({ id: props.id }).patch({
+    const res = await eden.editor.articles({ id: props._id }).patch({
       isPublished: true,
     });
     if (res?.error) {
@@ -129,9 +129,10 @@ const ArticleCard = (props: ArticleCardProps) => {
   };
 
   const handleUnpublish = async () => {
-    const res = await eden.editor.articles({ id: props.id }).patch({
+    const res = await eden.editor.articles({ id: props._id }).patch({
       isPublished: false,
     });
+    console.log(res,"RES")
     if (res?.error) {
       toast.error(res.error.value.message);
     } else {
