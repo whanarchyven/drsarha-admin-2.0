@@ -21,30 +21,6 @@ export function createArticlesApiController() {
   };  
   
   return new Elysia({ prefix: '/editor' })
-  .get('/news', async ({ query: { page = 0, limit = 10, search, sort_by, sort_order, start_date, end_date, category  } }) => {
-    try {
-      const skip = page * limit;
-      console.log(`/news?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, category })}`)
-      const articles = await editorApiService.get<any[]>(`/news?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, category })}`);
-      
-      console.log(articles)
-      return articles;
-    } catch (error) {
-      //console.log(error,"ERROR")
-      throw new Error(`Ошибка при получении статей: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  },{
-    query: t.Object({
-      page: t.Optional(t.Number()),
-      limit: t.Optional(t.Number()),
-      search: t.Optional(t.String()),
-      sort_by: t.Optional(t.String()),
-      sort_order: t.Optional(t.String()),
-      start_date: t.Optional(t.String()),
-      end_date: t.Optional(t.String()),
-      category: t.Optional(t.String()),
-    })
-  })
 
   .get('/articles', async ({ query: { page = 0, limit = 10, search, sort_by, sort_order, start_date, end_date, category, subcategory , include_deleted } }) => {
     try {
@@ -78,7 +54,8 @@ export function createArticlesApiController() {
       console.log(`/articles/${id}`)
       return article;
     } catch (error) {
-      console.log(error.data,"ERROR")
+      const errorData = error && typeof error === 'object' && 'data' in error ? error.data : null;
+      console.log(errorData, "ERROR");
       throw new Error(`Ошибка при получении статьи: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, {
@@ -117,10 +94,12 @@ export function createArticlesApiController() {
   })
 
   .patch('/articles/:id', async ({ params: { id }, body }) => {
-
     try {
-      const res=await editorApiService.patch(`/articles/${id}`,{...body});
-      console.log(res.title.ru.human,"RES")
+      const res = await editorApiService.patch<any>(`/articles/${id}`, {...body});
+      const titleRu = res && typeof res === 'object' && 'title' in res && res.title?.ru?.human 
+        ? res.title.ru.human 
+        : null;
+      console.log(titleRu, "RES");
       return { message: 'Статья обновлена' };
     } catch (error: unknown) {
       const newErr = error as AxiosError['response']
@@ -189,5 +168,150 @@ export function createArticlesApiController() {
     })
   })
 
-    
+  // Добавляем роуты для работы с новостями
+  .get('/news', async ({ query: { page = 0, limit = 10, search, sort_by, sort_order, start_date, end_date, category, include_deleted } }) => {
+    try {
+      const skip = page * limit;
+      console.log(`/news?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, category, include_deleted })}`)
+      const news = await editorApiService.get<any[]>(`/news?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, category, include_deleted })}`);
+      console.log(news, "NEWS")
+      return news;
+    } catch (error) {
+      throw new Error(`Ошибка при получении новостей: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  },{
+    query: t.Object({
+      page: t.Optional(t.Number()),
+      limit: t.Optional(t.Number()),
+      search: t.Optional(t.String()),
+      sort_by: t.Optional(t.String()),
+      sort_order: t.Optional(t.String()),
+      start_date: t.Optional(t.String()),
+      end_date: t.Optional(t.String()),
+      category: t.Optional(t.String()),
+      include_deleted: t.Optional(t.Boolean()),
+    })
+  })
+
+  .get('/news/:id', async ({ params: { id } }) => {
+    try {
+      const newsItem = await editorApiService.get<any>(`/news/${id}`);
+      return newsItem;
+    } catch (error) {
+      const errorData = error && typeof error === 'object' && 'data' in error ? error.data : null;
+      throw new Error(`Ошибка при получении новости: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, {
+    params: t.Object({
+      id: t.String()
+    })
+  })
+
+  .post('/news', async ({ body }) => {
+    try {
+      const res = await editorApiService.post('/news', body);
+      return res;
+    } catch (error) {
+      throw new Error(`Ошибка при создании новости: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, {
+    body: t.Object({
+      title_raw: t.String(),
+      content_raw: t.String(),
+      category: t.Optional(t.String()),
+      isPublished: t.Optional(t.Boolean()),
+      publishedDate: t.Optional(t.String()),
+      authors: t.Optional(t.Array(t.String())),
+      languages: t.Optional(t.Array(t.String())),
+      title_ru_ai: t.Optional(t.String()),
+      title_ru_human: t.Optional(t.String()),
+      content_ru_ai: t.Optional(t.String()),
+      content_ru_human: t.Optional(t.String()),
+    })
+  })
+
+  .patch('/news/:id', async ({ params: { id }, body }) => {
+    try {
+      await editorApiService.patch(`/news/${id}`, {...body});
+      return { message: 'Новость обновлена' };
+    } catch (error: unknown) {
+      const newErr = error as AxiosError['response']
+      const newErrData = newErr?.data as ErrorResponse
+      return new Error(`Ошибка при обновлении новости: ${newErrData.detail}`);
+    }
+  }, {
+    params: t.Object({
+      id: t.String()
+    }),
+    body: t.Object({
+      title_raw: t.Optional(t.String()),
+      content_raw: t.Optional(t.String()),
+      category: t.Optional(t.String()),
+      isPublished: t.Optional(t.Boolean()),
+      publishedDate: t.Optional(t.String()),
+      authors: t.Optional(t.Array(t.String())),
+      languages: t.Optional(t.Array(t.String())),
+      isDeleted: t.Optional(t.Boolean()),
+      hasTranslation: t.Optional(t.Boolean()),
+      title_ru_ai: t.Optional(t.String()),
+      title_ru_human: t.Optional(t.String()),
+      content_ru_ai: t.Optional(t.String()),
+      content_ru_human: t.Optional(t.String()),
+    })
+  })
+
+  .delete('/news/:id', async ({ params: { id } }) => {
+    try {
+      await editorApiService.delete(`/news/${id}`);
+      return { message: 'Новость удалена' };
+    } catch (error) {
+      throw new Error(`Ошибка при удалении новости: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, {
+    params: t.Object({
+      id: t.String()
+    })
+  })
+
+  .post('/news/:id/restore', async ({ params: { id }, body }) => {
+    try {
+      await editorApiService.post(`/news/${id}/restore`, body);
+      return { message: 'Новость восстановлена' };
+    } catch (error: unknown) {
+      const newErr = error as AxiosError['response']
+      const newErrData = newErr?.data as ErrorResponse
+      return new Error(`Ошибка при восстановлении новости: ${newErrData.detail}`);
+    }
+  }, {
+    params: t.Object({
+      id: t.String()
+    })
+  })
+
+  .post('/news/translate', async ({ body }) => {
+    try {
+      const res = await editorApiService.post('/news/translate', body);
+      return res;
+    } catch (error) {
+      throw new Error(`Ошибка при переводе новости: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, {
+    body: t.Object({
+      identifier: t.String(),
+      type: t.String(),
+    })
+  })
+
+  .get('/news/translation/:task_id', async ({ params: { task_id } }) => {
+    try {
+      const res = await editorApiService.get(`/news/translation/${task_id}`);
+      return res;
+    } catch (error) {
+      throw new Error(`Ошибка при проверке статуса перевода новости: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, {
+    params: t.Object({
+      task_id: t.String()
+    })
+  })
 }

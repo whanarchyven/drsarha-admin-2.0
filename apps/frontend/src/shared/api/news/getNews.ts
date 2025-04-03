@@ -1,12 +1,21 @@
-import { News } from '@/entities/News/model';
+import { Article } from '@/entities/Article/model';
 import { eden } from '@/features/eden/eden';
 
 type NewsResponse = {
-  all: number;
-  deleted: number;
-  published: number;
-  data: News[];
+  metadata: {
+    total: number;
+    limit: number;
+    skip: number;
+    has_more: boolean;
+    all: number;
+    deleted: number;
+    published: number;
+    translated: number;
+  };
+  data: Article[];
 };
+
+// Функция для обработки markdown текста в статьях
 
 export const getNews = async ({
   page,
@@ -17,6 +26,8 @@ export const getNews = async ({
   start_date,
   end_date,
   category,
+  subcategory,
+  include_deleted,
 }: {
   page?: number;
   limit?: number;
@@ -26,6 +37,8 @@ export const getNews = async ({
   start_date?: string;
   end_date?: string;
   category?: string;
+  subcategory?: string;
+  include_deleted?: boolean;
 }): Promise<NewsResponse> => {
   const query = {
     page: page ?? 0,
@@ -36,12 +49,18 @@ export const getNews = async ({
     ...(start_date !== undefined && { start_date }),
     ...(end_date !== undefined && { end_date }),
     ...(category !== undefined && { category }),
-    ...(sort_order !== undefined && { sort_order }),
+    ...(subcategory !== undefined && { subcategory }),
+    ...(include_deleted !== undefined && { include_deleted }),
   };
   console.log(query);
 
   const response = await eden.editor.news.get({
     query: query,
   });
-  return response.data as unknown as NewsResponse;
+
+  console.log(response, 'RESPONSE AUE');
+  // Обрабатываем markdown поля в статьях
+  const data = response.data as unknown as NewsResponse;
+
+  return data;
 };

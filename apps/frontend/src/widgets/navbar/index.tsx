@@ -49,12 +49,12 @@ const NavLink: React.FC<NavLinkProps> = ({
 };
 
 export const navLinks: LinkInterface[] = [
-  // {
-  //   icon: '/icons/news.svg',
-  //   link: '/news',
-  //   name: 'Новости',
-  //   roles: ['admin', 'developer', 'editor'],
-  // },
+  {
+    icon: '/icons/news.svg',
+    link: '/news',
+    name: 'Новости',
+    roles: ['admin', 'developer', 'editor'],
+  },
   {
     icon: '/icons/articles.svg',
     link: '/articles',

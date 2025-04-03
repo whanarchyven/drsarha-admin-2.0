@@ -898,7 +898,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
         }
       }
 
-      // Безопасная замена блоков в редакторе саммари
+      // Безопасная замена блоков в редакторе саммариf
       if (summaryEditor && summaryEditor.document) {
         try {
           await summaryEditor.replaceBlocks(
@@ -1129,7 +1129,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
             editor={summaryEditor}
           />
         </div>
-        <div className="flex flex-col gap-2">
+        {/* <div className="flex flex-col gap-2">
           <Label>Список источников</Label>
           <SourcesList
             initialSources={sources}
@@ -1137,7 +1137,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
               setSources(sources);
             }}
           />
-        </div>
+        </div> */}
         <Button
           onClick={async () => {
             const markdown = await editor.blocksToMarkdownLossy();

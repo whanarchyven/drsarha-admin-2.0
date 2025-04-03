@@ -1,6 +1,6 @@
 'use client';
 import { DatePicker } from '@/components/date-picker';
-import { getNews } from '@/shared/api/news/getNews';
+
 import { useEffect, useState } from 'react';
 import { parse, format, addDays } from 'date-fns';
 import ArticleCard from '@/entities/Article/ui';
@@ -16,7 +16,6 @@ import {
   SelectValue,
   SelectItem,
 } from '@/components/ui/select';
-import { ru } from 'date-fns/locale';
 import { Switch } from '@/components/ui/switch';
 export default function ArticlesPage({ searchParams }: { searchParams: any }) {
   const today = new Date();

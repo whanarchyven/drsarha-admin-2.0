@@ -1,16 +1,64 @@
 'use client';
 import { DatePicker } from '@/components/date-picker';
-import { getNews } from '@/shared/api/news/getNews';
+
 import { useEffect, useState } from 'react';
 import { parse, format, addDays } from 'date-fns';
-import NewsCard from '@/entities/News/ui';
+import ArticleCard from '@/entities/Article/ui';
+import { getNews } from '@/shared/api/news/getNews';
+import { StatTab } from '@/shared/ui/stat-tab';
+import Pagination from '@/shared/ui/pagination';
+import { Loader2 } from 'lucide-react';
+import { ArticleSearchDrawer } from '@/widgets/article-search-drawer';
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+  SelectItem,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+export default function ArticlesPage({ searchParams }: { searchParams: any }) {
+  const today = new Date();
+  const formattedToday = format(today, 'yyyy-MM-dd');
+  const { start_date = formattedToday, end_date = formattedToday } =
+    searchParams;
+  const [articles, setArticles] = useState<any[]>([]);
+  const [articlesInfo, setArticlesInfo] = useState<{
+    all: number;
+    published: number;
+    deleted: number;
+    translated: number;
+  }>({ all: 0, published: 0, deleted: 0, translated: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
 
-export default function NewsPage({ searchParams }: { searchParams: any }) {
-  const { start_date, end_date } = searchParams;
-  const [news, setNews] = useState<any[]>([]);
+  const options = [
+    { label: 'Детская дерматология', value: 'Детская дерматология' },
+    { label: 'Педиатрия', value: 'Педиатрия' },
+    { label: 'Диетология', value: 'Диетология' },
+    { label: 'Дерматология', value: 'Дерматология' },
+    { label: 'Дерматовенерология', value: 'Дерматовенерология' },
+    { label: 'Трихология', value: 'Трихология' },
+    { label: 'Дерматоскопия', value: 'Дерматоскопия' },
+    {
+      label: 'Дерматозы аногенитальной области',
+      value: 'Дерматозы аногенитальной области',
+    },
+    { label: 'Дерматозы беременных', value: 'Дерматозы беременных' },
+    { label: 'Дерматоонкология', value: 'Дерматоонкология' },
+  ];
+
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(
+    null
+  );
+  const [includeDeleted, setIncludeDeleted] = useState(false);
+
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     try {
+      setIsLoading(true);
       let formattedStartDate: string | undefined;
       let formattedEndDate: string | undefined;
 
@@ -49,7 +97,7 @@ export default function NewsPage({ searchParams }: { searchParams: any }) {
       else if (formattedStartDate && !formattedEndDate) {
         try {
           const startDate = new Date(formattedStartDate);
-          const nextDay = addDays(startDate, 2);
+          const nextDay = addDays(startDate, 1);
           formattedEndDate = format(nextDay, "yyyy-MM-dd'T'00:00:00'Z'");
         } catch (error) {
           console.error('Ошибка при автоматическом создании end_date:', error);
@@ -60,41 +108,136 @@ export default function NewsPage({ searchParams }: { searchParams: any }) {
       const queryParams: any = {};
       if (formattedStartDate) queryParams.start_date = formattedStartDate;
       if (formattedEndDate) queryParams.end_date = formattedEndDate;
-
+      queryParams.page = currentPage - 1;
+      if (selectedSubCategory) queryParams.subcategory = selectedSubCategory;
+      if (includeDeleted) queryParams.include_deleted = includeDeleted;
       // Выполняем запрос
       getNews(queryParams).then((res) => {
-        if (res.data) {
-          console.log(res.data, 'AUE RESPONSE');
-
-          setNews(res.data);
-        } else {
-          setNews([]);
+        try {
+          if (res.data) {
+            console.log(res, 'AUE RESPONSE');
+            setArticlesInfo({
+              all: res.metadata.all,
+              published: res.metadata.published,
+              deleted: res.metadata.deleted,
+              translated: res.metadata.translated,
+            });
+            setArticles(res.data);
+            setIsLoading(false);
+          } else {
+            setArticles([]);
+            setIsLoading(false);
+          }
+        } catch (error) {
+          console.error('Ошибка при получении статей:', error);
+          setArticles([]);
+          setIsLoading(false);
         }
       });
     } catch (error) {
-      console.error('Ошибка при получении новостей:', error);
-      setNews([]);
+      console.log(JSON.stringify(error), 'ERROR');
+      // console.error("Ошибка при получении статей:", error);
+      setArticles([]);
+      setIsLoading(false);
     }
-  }, [start_date, end_date]);
+  }, [
+    start_date,
+    end_date,
+    currentPage,
+    selectedSubCategory,
+    includeDeleted,
+    refresh,
+  ]);
 
   return (
     <div>
       <div className="flex justify-between items-center gap-4">
-        <h1 className="text-2xl font-bold">Новости</h1>
-        <DatePicker />
+        <h1 className="text-2xl font-bold">
+          Статьи за {format(new Date(start_date), 'dd.MM.yyyy')}
+        </h1>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={includeDeleted}
+              onCheckedChange={setIncludeDeleted}
+            />
+            <p>С удаленными</p>
+          </div>
+          <DatePicker />
+        </div>
       </div>
 
-      <div className="mt-6">
-        {news.length > 0 ? (
-          <div className="grid gap-4">
-            {news.map((item, index) => (
-              <NewsCard key={index} {...item} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-500">Новости не найдены</p>
-        )}
+      <div className="grid grid-cols-4 my-8 gap-4">
+        <StatTab
+          title="Всего статей"
+          value={articlesInfo.all}
+          variant="default"
+        />
+        <StatTab
+          title="Переведено"
+          value={articlesInfo.translated}
+          variant="default"
+        />
+        <StatTab
+          title="Опубликовано"
+          value={articlesInfo.published}
+          variant="success"
+        />
+        <StatTab title="Удалено" value={articlesInfo.deleted} variant="error" />
       </div>
+
+      <div className="flex justify-between items-center gap-4">
+        <div className="max-w-1/3">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(
+              (includeDeleted
+                ? articlesInfo.all
+                : articlesInfo.all - articlesInfo.deleted) / pageSize
+            )}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+        <div className="flex items-center gap-4">
+          <ArticleSearchDrawer />
+          <Select
+            value={selectedSubCategory ?? ''}
+            onValueChange={(value: string) => setSelectedSubCategory(value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Выберите категорию" />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center my-10">
+          <Loader2 className="w-10 h-10 animate-spin" />
+        </div>
+      ) : (
+        <div className="mt-6">
+          {articles.length > 0 ? (
+            <div className="grid gap-4">
+              {articles.map((item, index) => (
+                <ArticleCard
+                  key={index}
+                  {...item}
+                  updateFunction={() => setRefresh(!refresh)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">Статьи не найдены</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
