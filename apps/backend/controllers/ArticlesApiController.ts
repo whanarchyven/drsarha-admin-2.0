@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { AxiosApiService } from '../services/AxiosApiService';
+import { TelegramBotService } from '../services/TelegramBotService';
 import type { AxiosError } from 'axios';
 
 const authHeader = process.env.EDITOR_ID
@@ -10,8 +11,11 @@ export interface ErrorResponse {
 
 export function createArticlesApiController() {
   // Создаем экземпляр сервиса для работы с внешним API
-  const editorApiService = new AxiosApiService('https://drsarha-admin-backend.dev.reflectai.pro');
+  const editorApiService = new AxiosApiService('https://drsarha-admin-backend.reflectai.pro');
   editorApiService.setAuthToken('39fb8934e5c24e3da12d4549e6d9c679a48c97dc416f45a6b5eea781128baf05')
+  
+  // Создаем экземпляр сервиса для Telegram бота
+  const telegramBotService = new TelegramBotService();
 
   const constructQueryString = (query: any) => {
     return Object.entries(query)
@@ -56,6 +60,8 @@ export function createArticlesApiController() {
     } catch (error) {
       const errorData = error && typeof error === 'object' && 'data' in error ? error.data : null;
       console.log(errorData, "ERROR");
+      const errorData = error && typeof error === 'object' && 'data' in error ? error.data : null;
+      console.log(errorData, "ERROR");
       throw new Error(`Ошибка при получении статьи: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, {
@@ -94,12 +100,51 @@ export function createArticlesApiController() {
   })
 
   .patch('/articles/:id', async ({ params: { id }, body }) => {
+    console.log(body,"AUEEEEE")
     try {
+      // Получаем предыдущее состояние статьи, чтобы проверить изменение статуса публикации
+      let previousPublishedState = false;
+      let title = '';
+      let articleLink = '';
+      
+      try {
+        const article = await editorApiService.get<any>(`/articles/${id}`);
+        previousPublishedState = article?.meta?.isPublished || false;
+        title = article?.title?.ru?.human || article?.title?.ru?.ai || article?.title?.raw || '';
+        // Используем URL-параметры в ссылке статьи, на основе articleUrl
+        const articleUrl = article?.articleUrl;
+        if (articleUrl) {
+          articleLink = `https://drsarha.ru/article?url=${encodeURIComponent(articleUrl)}`;
+        } else {
+          articleLink = `https://drsarha.ru/article/${id}`;
+        }
+      } catch (error) {
+        console.log('Не удалось получить предыдущее состояние статьи:', error);
+      }
+      
+      // Отправляем запрос на обновление
       const res = await editorApiService.patch<any>(`/articles/${id}`, {...body});
-      const titleRu = res && typeof res === 'object' && 'title' in res && res.title?.ru?.human 
-        ? res.title.ru.human 
-        : null;
-      console.log(titleRu, "RES");
+      
+      // Проверяем, изменился ли статус публикации на "опубликовано"
+      if (body.isPublished === true && !previousPublishedState) {
+        console.log('Статья была опубликована, отправляем уведомление в Telegram');
+        
+        // Получаем заголовок, если он не был получен ранее
+        if (!title) {
+          title = res?.title?.ru?.human || res?.title?.ru?.ai || res?.title?.raw || 'Новая статья';
+        }
+        
+        // Формируем ссылку на статью
+        
+        
+        // Отправляем уведомление в Telegram
+        await telegramBotService.sendNotification({
+          message_type: 'article',
+          title,
+          link: articleLink
+        });
+      }
+      
       return { message: 'Статья обновлена' };
     } catch (error: unknown) {
       const newErr = error as AxiosError['response']
