@@ -85,7 +85,7 @@ export function DatePicker() {
     const newStartDate = formatForUrl(newDate);
 
     // Создаем дату для end_date (start_date + 1 день)
-    const endDate = addDays(newDate, 1);
+    const endDate = addDays(newDate, 0);
     const newEndDate = formatForUrl(endDate);
 
     // Обновляем URL только если start_date изменился

@@ -1,48 +1,89 @@
 export interface News {
-  id: string;
+  // Языки
+  languages: string[];
 
-  // Title
-  title: string;
-  title_translation_ai: string;
-  title_translation_human: string;
+  // Заголовок
+  title: {
+    en: {
+      ai: string;
+      human: string;
+    };
+    ru: {
+      ai: string;
+      human: string;
+    };
+    raw: string;
+  };
 
-  // Content
-  content: string;
+  // Содержимое
+  content: {
+    en: {
+      ai: string;
+      human: string;
+    };
+    ru: {
+      ai: string;
+      human: string;
+    };
+    raw: string;
+  };
 
-  translation_human: string;
-  translation_ai: string;
-  // Summary
-  summary: string;
-  summary_human: string;
+  // Краткое содержание
+  summary: {
+    ru: {
+      ai: string;
+      human: string;
+    };
+  };
 
-  //State-flags
-  isIndexed: boolean;
-  isPublished: boolean;
-  hasTranslation: boolean;
-  hasDevComment: boolean;
+  // Метаданные
+  meta: {
+    isIndexed: boolean;
+    isPublished: boolean;
+    isDeleted: boolean;
+    hasTranslation: boolean;
+    hasDevComment: boolean;
+    isClinicalCase: boolean;
+  };
 
-  //URLs
+  // URL статьи
   articleUrl: string;
-  mainUrl: string;
 
-  //Dates
-  publishedDate: string;
-  createdAt: string;
-  updatedAt: string;
+  // Даты
+  dates: {
+    published: string;
+    created: string;
+    updated: string;
+  };
 
-  //Categories
+  // Категория и подкатегория
   category: string;
-  subcategories: string[];
+  subcategory: string;
 
-  //References
-  references_human: string[];
+  // Ссылки
+  references: string[];
 
-  //Other
-  tokenCount: {
-    contentTokenCount: number;
-    pdfTokenCount: number;
+  // DOI
+  doi: string;
+
+  // Название издателя
+  publisherName: string;
+
+  // Авторы
+  authors: string[];
+
+  // Дополнительные данные
+  addons: {
+    mainUrl?: string;
+    pdf_text?: string;
+    isDeletedAt?: string;
   };
-  mongo_id: {
-    $oid: string;
-  };
+
+  // Итерация парсера
+  parserIteration: number;
+
+  // Идентификатор
+  id: string;
+  _id: null | string;
 }
+

@@ -97,7 +97,7 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
       else if (formattedStartDate && !formattedEndDate) {
         try {
           const startDate = new Date(formattedStartDate);
-          const nextDay = addDays(startDate, 1);
+          const nextDay = addDays(startDate, 0);
           formattedEndDate = format(nextDay, "yyyy-MM-dd'T'00:00:00'Z'");
         } catch (error) {
           console.error('Ошибка при автоматическом создании end_date:', error);

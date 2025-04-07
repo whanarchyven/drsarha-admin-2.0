@@ -8,6 +8,7 @@ const roleBasedAccess = {
   '/news/*': ['admin', 'editor'],
   '/articles': ['admin', 'editor'],
   '/articles/*': ['admin', 'editor'],
+  
   '/settings': ['admin'],
   '/': ['admin', 'editor', 'developer'],
   '/subscribers': ['admin'],

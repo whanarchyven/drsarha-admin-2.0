@@ -3,12 +3,11 @@ import { DatePicker } from '@/components/date-picker';
 
 import { useEffect, useState } from 'react';
 import { parse, format, addDays } from 'date-fns';
-import ArticleCard from '@/entities/Article/ui';
+
 import { getNews } from '@/shared/api/news/getNews';
 import { StatTab } from '@/shared/ui/stat-tab';
 import Pagination from '@/shared/ui/pagination';
 import { Loader2 } from 'lucide-react';
-import { ArticleSearchDrawer } from '@/widgets/article-search-drawer';
 import {
   Select,
   SelectContent,
@@ -17,13 +16,15 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import NewsCard from '@/entities/News/ui';
+import { NewsSearchDrawer } from '@/widgets/news-search-drawer';
 export default function ArticlesPage({ searchParams }: { searchParams: any }) {
   const today = new Date();
   const formattedToday = format(today, 'yyyy-MM-dd');
   const { start_date = formattedToday, end_date = formattedToday } =
     searchParams;
-  const [articles, setArticles] = useState<any[]>([]);
-  const [articlesInfo, setArticlesInfo] = useState<{
+  const [news, setNews] = useState<any[]>([]);
+  const [newsInfo, setNewsInfo] = useState<{
     all: number;
     published: number;
     deleted: number;
@@ -97,7 +98,7 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
       else if (formattedStartDate && !formattedEndDate) {
         try {
           const startDate = new Date(formattedStartDate);
-          const nextDay = addDays(startDate, 1);
+          const nextDay = addDays(startDate, 0);
           formattedEndDate = format(nextDay, "yyyy-MM-dd'T'00:00:00'Z'");
         } catch (error) {
           console.error('Ошибка при автоматическом создании end_date:', error);
@@ -116,28 +117,28 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
         try {
           if (res.data) {
             console.log(res, 'AUE RESPONSE');
-            setArticlesInfo({
+              setNewsInfo({
               all: res.metadata.all,
               published: res.metadata.published,
               deleted: res.metadata.deleted,
               translated: res.metadata.translated,
             });
-            setArticles(res.data);
+            setNews(res.data);
             setIsLoading(false);
           } else {
-            setArticles([]);
+            setNews([]);
             setIsLoading(false);
           }
         } catch (error) {
           console.error('Ошибка при получении статей:', error);
-          setArticles([]);
+          setNews([]);
           setIsLoading(false);
         }
       });
     } catch (error) {
       console.log(JSON.stringify(error), 'ERROR');
       // console.error("Ошибка при получении статей:", error);
-      setArticles([]);
+      setNews([]);
       setIsLoading(false);
     }
   }, [
@@ -153,7 +154,7 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
     <div>
       <div className="flex justify-between items-center gap-4">
         <h1 className="text-2xl font-bold">
-          Статьи за {format(new Date(start_date), 'dd.MM.yyyy')}
+          Новости за {format(new Date(start_date), 'dd.MM.yyyy')}
         </h1>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -169,21 +170,21 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
 
       <div className="grid grid-cols-4 my-8 gap-4">
         <StatTab
-          title="Всего статей"
-          value={articlesInfo.all}
+          title="Всего новостей"
+          value={newsInfo.all}
           variant="default"
         />
         <StatTab
           title="Переведено"
-          value={articlesInfo.translated}
+          value={newsInfo.translated}
           variant="default"
         />
         <StatTab
           title="Опубликовано"
-          value={articlesInfo.published}
+          value={newsInfo.published}
           variant="success"
         />
-        <StatTab title="Удалено" value={articlesInfo.deleted} variant="error" />
+        <StatTab title="Удалено" value={newsInfo.deleted} variant="error" />
       </div>
 
       <div className="flex justify-between items-center gap-4">
@@ -192,14 +193,14 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
             currentPage={currentPage}
             totalPages={Math.ceil(
               (includeDeleted
-                ? articlesInfo.all
-                : articlesInfo.all - articlesInfo.deleted) / pageSize
+                ? newsInfo.all
+                : newsInfo.all - newsInfo.deleted) / pageSize
             )}
             onPageChange={setCurrentPage}
           />
         </div>
         <div className="flex items-center gap-4">
-          <ArticleSearchDrawer />
+          <NewsSearchDrawer />
           <Select
             value={selectedSubCategory ?? ''}
             onValueChange={(value: string) => setSelectedSubCategory(value)}>
@@ -223,10 +224,10 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
         </div>
       ) : (
         <div className="mt-6">
-          {articles.length > 0 ? (
+          {news.length > 0 ? (
             <div className="grid gap-4">
-              {articles.map((item, index) => (
-                <ArticleCard
+              {news.map((item, index) => (
+                <NewsCard
                   key={index}
                   {...item}
                   updateFunction={() => setRefresh(!refresh)}
@@ -234,7 +235,7 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500">Статьи не найдены</p>
+            <p className="text-center text-gray-500">Новости не найдены</p>
           )}
         </div>
       )}

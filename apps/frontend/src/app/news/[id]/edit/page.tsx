@@ -1,22 +1,22 @@
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 import { eden } from '@/features/eden/eden';
-import EditArticleForm from '@/widgets/edit-article-form';
+import EditNewsForm from '@/widgets/edit-news-form';
 
-export default async function EditArticlePage({ params }: { params: any }) {
+export default async function EditNewsPage({ params }: { params: any }) {
   const { id } = params;
 
-  const article = await eden.editor.articles({ id: id }).get();
-  console.log(article,"ARTICLE")
+  const news = await eden.editor.news({ id: id }).get();
+  console.log(news,"NEWS")
 
-  if (article?.error) {
-    return <div>Error: {article.error.value.message}</div>;
+  if (news?.error) {
+    return <div>Error: {news.error.value.message}</div>;
   }
-  console.log(article);
+  console.log(news);
 
   return (
     <div>
-      <EditArticleForm article={article.data} />
+      <EditNewsForm news={news.data} />
     </div>
   );
 }

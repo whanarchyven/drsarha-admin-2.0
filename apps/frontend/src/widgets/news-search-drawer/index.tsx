@@ -5,14 +5,14 @@ import { Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AnimatePresence, motion } from 'framer-motion';
-import { getArticles } from '@/shared/api/articles/getArticles';
+import { getNews } from '@/shared/api/news/getNews';
 import Link from 'next/link';
 interface SearchResult {
   id: string;
   title: string;
 }
 
-export function ArticleSearchDrawer() {
+export function NewsSearchDrawer() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -53,7 +53,7 @@ export function ArticleSearchDrawer() {
 
     setIsLoading(true);
     try {
-      const data = await getArticles({ search: query, limit: 10, page: 0 });
+      const data = await getNews({ search: query, limit: 10, page: 0 });
       setResults(
         data.data.map((item: any) => ({ id: item._id, title: item.title }))
       );
@@ -136,7 +136,7 @@ export function ArticleSearchDrawer() {
                         {results.map((result) => (
                           <Link
                             key={result.id}
-                            href={`/articles/${result.id}`}
+                            href={`/news/${result.id}/edit`}
                             className="px-4 py-2 hover:bg-muted cursor-pointer">
                             {result.title.raw}
                           </Link>

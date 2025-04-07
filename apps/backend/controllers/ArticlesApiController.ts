@@ -169,11 +169,12 @@ export function createArticlesApiController() {
   })
 
   // Добавляем роуты для работы с новостями
-  .get('/news', async ({ query: { page = 0, limit = 10, search, sort_by, sort_order, start_date, end_date, category, include_deleted } }) => {
+  .get('/news', async ({ query: { page = 0, limit = 10, search, sort_by, sort_order, start_date, end_date, subcategory, include_deleted } }) => {
+    console.log(subcategory, "CATEGORY")
     try {
       const skip = page * limit;
-      console.log(`/news?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, category, include_deleted })}`)
-      const news = await editorApiService.get<any[]>(`/news?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, category, include_deleted })}`);
+      console.log(`/news?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, subcategory, include_deleted })}`)
+      const news = await editorApiService.get<any[]>(`/news?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, subcategory, include_deleted })}`);
       console.log(news, "NEWS")
       return news;
     } catch (error) {
@@ -188,7 +189,7 @@ export function createArticlesApiController() {
       sort_order: t.Optional(t.String()),
       start_date: t.Optional(t.String()),
       end_date: t.Optional(t.String()),
-      category: t.Optional(t.String()),
+      subcategory: t.Optional(t.String()),
       include_deleted: t.Optional(t.Boolean()),
     })
   })
@@ -257,6 +258,11 @@ export function createArticlesApiController() {
       title_ru_human: t.Optional(t.String()),
       content_ru_ai: t.Optional(t.String()),
       content_ru_human: t.Optional(t.String()),
+      summary_ru_ai: t.Optional(t.String()),
+      summary_ru_human: t.Optional(t.String()),
+      subcategory: t.Optional(t.String()),
+      isClinicalCase: t.Optional(t.Boolean()),
+
     })
   })
 
