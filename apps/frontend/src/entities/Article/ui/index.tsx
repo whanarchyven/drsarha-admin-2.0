@@ -89,7 +89,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     props.summary.ru.human ?? props.summary.ru.ai
   );
 
-  const productionUrl = `https://drsarha.ru/articles?url=${props.articleUrl}`;
+  const productionUrl = `https://drsarha.ru/article?url=${props.articleUrl}`;
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openRestoreDialog, setOpenRestoreDialog] = useState(false);

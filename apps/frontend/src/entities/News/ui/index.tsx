@@ -84,7 +84,7 @@ const NewsCard = (props: NewsCardProps) => {
     props.summary.ru.human ?? props.summary.ru.ai
   );
 
-  const productionUrl = `https://drsarha.ru/news?url=${props.articleUrl}`;
+  const productionUrl = `https://drsarha.ru/new?url=${props.articleUrl}`;
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openRestoreDialog, setOpenRestoreDialog] = useState(false);
