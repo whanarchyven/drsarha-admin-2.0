@@ -132,7 +132,7 @@ const ArticleCard = (props: ArticleCardProps) => {
     const res = await eden.editor.articles({ id: props._id }).patch({
       isPublished: false,
     });
-    console.log(res,"RES")
+    console.log(res, 'RES');
     if (res?.error) {
       toast.error(res.error.value.message);
     } else {

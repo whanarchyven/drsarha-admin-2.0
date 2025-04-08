@@ -26,7 +26,6 @@ interface EditArticleFormProps {
 }
 export default function EditArticleForm({ article }: EditArticleFormProps) {
   const initialValues: Article = {
-    id: article.id,
     _id: article._id,
     languages: article.languages,
     articleUrl: article.articleUrl,
@@ -943,7 +942,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
     setIsTranslating(true);
     toast.loading('Переводим статью, ожидайте...');
     const res = await eden.editor.articles.translate.post({
-      identifier: article.id,
+      identifier: article._id,
       type: 'id',
     });
     if (res.data && (res.data as any).task_id) {
@@ -1000,7 +999,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
             <Button
               onClick={async () => {
                 const res = await eden.editor
-                  .articles({ id: article.id })
+                  .articles({ id: article._id })
                   .patch({
                     isDeleted: false,
                   });
@@ -1018,7 +1017,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
             <Button
               onClick={async () => {
                 const res = await eden.editor
-                  .articles({ id: article.id })
+                  .articles({ id: article._id })
                   .patch({
                     isDeleted: true,
                   });
@@ -1038,7 +1037,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
             <Button
               onClick={async () => {
                 const res = await eden.editor
-                  .articles({ id: article.id })
+                  .articles({ id: article._id })
                   .patch({
                     isPublished: false,
                   });
@@ -1056,7 +1055,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
             <Button
               onClick={async () => {
                 const res = await eden.editor
-                  .articles({ id: article.id })
+                  .articles({ id: article._id })
                   .patch({
                     isPublished: true,
                   });
@@ -1147,7 +1146,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
             console.log(sources);
             console.log(markdown);
             console.log(summaryMarkdown);
-            const res = await eden.editor.articles({ id: article.id }).patch({
+            const res = await eden.editor.articles({ id: article._id }).patch({
               content_ru_human: markdown,
               summary_ru_human: summaryMarkdown,
               subcategory: subcategory,

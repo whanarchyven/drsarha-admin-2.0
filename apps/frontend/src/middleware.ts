@@ -8,7 +8,7 @@ const roleBasedAccess = {
   '/news/*': ['admin', 'editor'],
   '/articles': ['admin', 'editor'],
   '/articles/*': ['admin', 'editor'],
-  
+
   '/settings': ['admin'],
   '/': ['admin', 'editor', 'developer'],
   '/subscribers': ['admin'],
@@ -131,9 +131,7 @@ export async function middleware(request: NextRequest) {
 
   // Если нет доступа, перенаправляем на главную вместо /login
   if (!hasAccess) {
-    console.log(
-      `Нет доступа к странице ${requestedPath} для роли ${userRole}`
-    );
+    console.log(`Нет доступа к странице ${requestedPath} для роли ${userRole}`);
     return NextResponse.redirect(new URL('/', request.url));
   }
 

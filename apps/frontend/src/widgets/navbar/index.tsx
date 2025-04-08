@@ -79,6 +79,12 @@ export const navLinks: LinkInterface[] = [
     name: 'Пользователи',
     roles: ['admin', 'developer'],
   },
+  {
+    icon: '/icons/telegram.svg',
+    link: '/telegram',
+    name: 'Telegram',
+    roles: ['admin', 'developer'],
+  },
   // {
   //   icon: '/icons/autopublishing.svg',
   //   link: '/autopublishing',

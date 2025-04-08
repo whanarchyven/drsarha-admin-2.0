@@ -7,7 +7,7 @@ export default async function EditNewsPage({ params }: { params: any }) {
   const { id } = params;
 
   const news = await eden.editor.news({ id: id }).get();
-  console.log(news,"NEWS")
+  console.log(news, 'NEWS');
 
   if (news?.error) {
     return <div>Error: {news.error.value.message}</div>;
@@ -20,5 +20,3 @@ export default async function EditNewsPage({ params }: { params: any }) {
     </div>
   );
 }
-
-

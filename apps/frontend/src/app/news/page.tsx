@@ -117,7 +117,7 @@ export default function ArticlesPage({ searchParams }: { searchParams: any }) {
         try {
           if (res.data) {
             console.log(res, 'AUE RESPONSE');
-              setNewsInfo({
+            setNewsInfo({
               all: res.metadata.all,
               published: res.metadata.published,
               deleted: res.metadata.deleted,

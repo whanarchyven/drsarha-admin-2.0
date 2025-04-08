@@ -2,20 +2,20 @@ import { Elysia, t } from 'elysia';
 import { AxiosApiService } from '../services/AxiosApiService';
 import { TelegramBotService } from '../services/TelegramBotService';
 import type { AxiosError } from 'axios';
-
+import type { Db } from 'mongodb';
 const authHeader = process.env.EDITOR_ID
 
 export interface ErrorResponse {
   detail: string
 }
 
-export function createArticlesApiController() {
+export function createArticlesApiController(db:Db) {
   // Создаем экземпляр сервиса для работы с внешним API
-  const editorApiService = new AxiosApiService('https://drsarha-admin-backend.reflectai.pro');
+  const editorApiService = new AxiosApiService('https://drsarha-admin-backend.dev.reflectai.pro');
   editorApiService.setAuthToken('39fb8934e5c24e3da12d4549e6d9c679a48c97dc416f45a6b5eea781128baf05')
   
   // Создаем экземпляр сервиса для Telegram бота
-  const telegramBotService = new TelegramBotService();
+  const telegramBotService = new TelegramBotService(db);
 
   const constructQueryString = (query: any) => {
     return Object.entries(query)
@@ -29,6 +29,7 @@ export function createArticlesApiController() {
   .get('/articles', async ({ query: { page = 0, limit = 10, search, sort_by, sort_order, start_date, end_date, category, subcategory , include_deleted } }) => {
     try {
       const skip = page * limit;
+      console.log(`Requesting: /articles?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, category, subcategory, include_deleted })}`)
       const articles = await editorApiService.get<any[]>(`/articles?skip=${skip}&limit=${limit}&${constructQueryString({ search, sort_by, sort_order, start_date, end_date, category, subcategory, include_deleted })}`);
       // console.log(articles.data[0].title,"ARTICLES")
       
@@ -58,8 +59,7 @@ export function createArticlesApiController() {
       console.log(`/articles/${id}`)
       return article;
     } catch (error) {
-      const errorData = error && typeof error === 'object' && 'data' in error ? error.data : null;
-      console.log(errorData, "ERROR");
+     
       const errorData = error && typeof error === 'object' && 'data' in error ? error.data : null;
       console.log(errorData, "ERROR");
       throw new Error(`Ошибка при получении статьи: ${error instanceof Error ? error.message : String(error)}`);
@@ -100,7 +100,7 @@ export function createArticlesApiController() {
   })
 
   .patch('/articles/:id', async ({ params: { id }, body }) => {
-    console.log(body,"AUEEEEE")
+    console.log("PATCH ARTICLE")
     try {
       // Получаем предыдущее состояние статьи, чтобы проверить изменение статуса публикации
       let previousPublishedState = false;
@@ -124,6 +124,7 @@ export function createArticlesApiController() {
       
       // Отправляем запрос на обновление
       const res = await editorApiService.patch<any>(`/articles/${id}`, {...body});
+      console.log(res, "RES BLYAT", body, "BODY")
       
       // Проверяем, изменился ли статус публикации на "опубликовано"
       if (body.isPublished === true && !previousPublishedState) {
@@ -141,8 +142,10 @@ export function createArticlesApiController() {
         await telegramBotService.sendNotification({
           message_type: 'article',
           title,
-          link: articleLink
+          link: articleLink,
+          publishedAt: new Date().toISOString()
         });
+        console.log("ARTICLE SENT TO STACK")
       }
       
       return { message: 'Статья обновлена' };
@@ -158,7 +161,7 @@ export function createArticlesApiController() {
     body: t.Object({
       articleUrl: t.Optional(t.String()),
       category: t.Optional(t.String()),
-      subcategory: t.Optional(t.String()),
+      
       references: t.Optional(t.Array(t.String())),
       doi: t.Optional(t.String()),
       publisherName: t.Optional(t.String()),
@@ -278,7 +281,44 @@ export function createArticlesApiController() {
 
   .patch('/news/:id', async ({ params: { id }, body }) => {
     try {
-      await editorApiService.patch(`/news/${id}`, {...body});
+      // Получаем предыдущее состояние новости, чтобы проверить изменение статуса публикации
+      let previousPublishedState = false;
+      let title = '';
+      
+      try {
+        const news = await editorApiService.get<any>(`/news/${id}`);
+        previousPublishedState = news?.meta?.isPublished || false;
+        title = news?.title?.ru?.human || news?.title?.ru?.ai || news?.title?.raw || '';
+      } catch (error) {
+        console.log('Не удалось получить предыдущее состояние новости:', error);
+      }
+      
+      // Отправляем запрос на обновление
+      const res = await editorApiService.patch<any>(`/news/${id}`, {...body});
+      
+      // Проверяем, изменился ли статус публикации на "опубликовано"
+      console.log(body.isPublished, "IS PUBLISHED")
+      if (body.isPublished === true && !previousPublishedState) {
+        console.log('Новость была опубликована, отправляем уведомление в Telegram');
+        
+        // Получаем заголовок, если он не был получен ранее
+        if (!title) {
+          title = res?.title?.ru?.human || res?.title?.ru?.ai || res?.title?.raw || 'Новость Dr. Sarha';
+        }
+        
+        // Формируем ссылку на новость
+        const newsLink = `https://drsarha.ru/new?url=${encodeURIComponent(res?.articleUrl)}`;
+        
+        // Отправляем уведомление в Telegram
+        await telegramBotService.sendNotification({
+          message_type: 'news',
+          title,
+          link: newsLink,
+          publishedAt: new Date().toISOString()
+        });
+        console.log("NEWS SENT TO STACK");
+      }
+      
       return { message: 'Новость обновлена' };
     } catch (error: unknown) {
       const newErr = error as AxiosError['response']
@@ -307,7 +347,6 @@ export function createArticlesApiController() {
       summary_ru_human: t.Optional(t.String()),
       subcategory: t.Optional(t.String()),
       isClinicalCase: t.Optional(t.Boolean()),
-
     })
   })
 

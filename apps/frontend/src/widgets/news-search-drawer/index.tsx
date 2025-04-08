@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { getNews } from '@/shared/api/news/getNews';
 import Link from 'next/link';
 interface SearchResult {
-  id: string;
+  _id: string;
   title: string;
 }
 
@@ -55,7 +55,7 @@ export function NewsSearchDrawer() {
     try {
       const data = await getNews({ search: query, limit: 10, page: 0 });
       setResults(
-        data.data.map((item: any) => ({ id: item._id, title: item.title }))
+        data.data.map((item: any) => ({ _id: item._id, title: item.title }))
       );
     } catch (error) {
       console.error('Error fetching search results:', error);
@@ -135,8 +135,8 @@ export function NewsSearchDrawer() {
                       <ul className="py-2 flex flex-col gap-2 max-h-[300px] overflow-y-scroll">
                         {results.map((result) => (
                           <Link
-                            key={result.id}
-                            href={`/news/${result.id}/edit`}
+                            key={result._id}
+                            href={`/news/${result._id}/edit`}
                             className="px-4 py-2 hover:bg-muted cursor-pointer">
                             {result.title.raw}
                           </Link>

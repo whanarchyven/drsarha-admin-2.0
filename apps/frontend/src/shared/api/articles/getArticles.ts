@@ -52,7 +52,7 @@ export const getArticles = async ({
     ...(subcategory !== undefined && { subcategory }),
     ...(include_deleted !== undefined && { include_deleted }),
   };
-  console.log(query);
+  console.log(query, 'QUERY');
 
   const response = await eden.editor.articles.get({
     query: query,

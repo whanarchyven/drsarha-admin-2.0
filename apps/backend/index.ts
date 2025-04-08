@@ -18,8 +18,8 @@ const app = new Elysia({
     }))
     .use(createUserController(db))
     .use(createExternalApiController())
-    .use(createArticlesApiController())
-    .use(createTelegramBotController())
+    .use(createArticlesApiController(db))
+    .use(createTelegramBotController(db))
     .listen({
         idleTimeout: 60,
         port: 3003

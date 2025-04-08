@@ -26,7 +26,6 @@ interface EditNewsFormProps {
 }
 export default function EditNewsForm({ news }: EditNewsFormProps) {
   const initialValues: News = {
-    id: news.id,
     _id: news._id,
     languages: news.languages,
     articleUrl: news.articleUrl,
@@ -943,7 +942,7 @@ export default function EditNewsForm({ news }: EditNewsFormProps) {
     setIsTranslating(true);
     toast.loading('Переводим статью, ожидайте...');
     const res = await eden.editor.news.translate.post({
-      identifier: news.id,
+      identifier: news._id,
       type: 'id',
     });
     if (res.data && (res.data as any).task_id) {
@@ -999,11 +998,9 @@ export default function EditNewsForm({ news }: EditNewsFormProps) {
           {news.meta.isDeleted ? (
             <Button
               onClick={async () => {
-                const res = await eden.editor
-                  .news({ id: news.id })
-                  .patch({
-                    isDeleted: false,
-                  });
+                const res = await eden.editor.news({ id: news._id }).patch({
+                  isDeleted: false,
+                });
                 if (res?.error) {
                   toast.error(res.error.value.message);
                 } else {
@@ -1017,11 +1014,9 @@ export default function EditNewsForm({ news }: EditNewsFormProps) {
           ) : (
             <Button
               onClick={async () => {
-                const res = await eden.editor
-                  .news({ id: news.id })
-                  .patch({
-                    isDeleted: true,
-                  });
+                const res = await eden.editor.news({ id: news._id }).patch({
+                  isDeleted: true,
+                });
                 if (res?.error) {
                   toast.error(res.error.value.message);
                 } else {
@@ -1037,11 +1032,9 @@ export default function EditNewsForm({ news }: EditNewsFormProps) {
           {news.meta.isPublished ? (
             <Button
               onClick={async () => {
-                const res = await eden.editor
-                  .news({ id: news.id })
-                  .patch({
-                    isPublished: false,
-                  });
+                const res = await eden.editor.news({ id: news._id }).patch({
+                  isPublished: false,
+                });
                 if (res?.error) {
                   toast.error(res.error.value.message);
                 } else {
@@ -1055,11 +1048,9 @@ export default function EditNewsForm({ news }: EditNewsFormProps) {
           ) : (
             <Button
               onClick={async () => {
-                const res = await eden.editor
-                  .news({ id: news.id })
-                  .patch({
-                    isPublished: true,
-                  });
+                const res = await eden.editor.news({ id: news._id }).patch({
+                  isPublished: true,
+                });
                 if (res?.error) {
                   toast.error(res.error.value.message);
                 } else {
@@ -1146,7 +1137,7 @@ export default function EditNewsForm({ news }: EditNewsFormProps) {
             console.log(title);
             console.log(markdown);
             console.log(summaryMarkdown);
-            const res = await eden.editor.news({ id: news.id }).patch({
+            const res = await eden.editor.news({ id: news._id }).patch({
               content_ru_human: markdown,
               summary_ru_human: summaryMarkdown,
               subcategory: subcategory,

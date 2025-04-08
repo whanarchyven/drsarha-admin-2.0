@@ -83,7 +83,5 @@ export interface News {
   parserIteration: number;
 
   // Идентификатор
-  id: string;
-  _id: null | string;
+  _id: string;
 }
-

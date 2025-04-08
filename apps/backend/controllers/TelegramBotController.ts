@@ -1,9 +1,9 @@
 import { Elysia, t } from 'elysia';
 import { TelegramBotService } from '../services/TelegramBotService';
 import type { TelegramMessageType } from '../services/TelegramBotService';
-
-export function createTelegramBotController() {
-  const telegramBotService = new TelegramBotService();
+import type { Db } from 'mongodb';
+export function createTelegramBotController(db: Db) {
+  const telegramBotService = new TelegramBotService(db);
 
   return new Elysia({ prefix: '/telegram' })
     .get('/status', async () => {
@@ -16,15 +16,33 @@ export function createTelegramBotController() {
       }
     })
 
+    .get('/stack', async () => {
+      const stack = await telegramBotService.getArticlesStack();
+      return stack;
+    }, {
+      detail: {
+        summary: 'Получить статьи из Telegram',
+        description: 'Возвращает статьи из Telegram'
+      }
+    })
+    .delete('/stack/:id', async ({ params }) => {
+      const { id } = params;
+      await telegramBotService.deleteFromArticlesStack(id);
+      return { success: true };
+    }, {
+      params: t.Object({
+        id: t.String()
+      }),
+      detail: {
+        summary: 'Удалить статью из Telegram',
+        description: 'Удаляет статью из Telegram'
+      }
+    })
     .post('/send', async ({ body }) => {
       console.log(body,"BODY")
-      const { message_type, title, link } = body;
+      const {  title,filterTime=false } = body;
       
-      const result = await telegramBotService.sendNotification({
-        message_type,
-        title,
-        link
-      });
+      const result = await telegramBotService.publishArticlesStack(title,filterTime);
       
       if (!result.success) {
         return new Response(JSON.stringify({ error: result.error }), {
@@ -36,9 +54,8 @@ export function createTelegramBotController() {
       return result;
     }, {
       body: t.Object({
-        message_type: t.Enum(t.String(), { values: ['article', 'news'] }),
         title: t.String(),
-        link: t.String()
+        filterTime: t.Optional(t.Boolean())
       }),
       detail: {
         summary: 'Отправить уведомление в Telegram канал',

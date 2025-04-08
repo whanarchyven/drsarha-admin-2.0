@@ -7,7 +7,7 @@ export default async function EditArticlePage({ params }: { params: any }) {
   const { id } = params;
 
   const article = await eden.editor.articles({ id: id }).get();
-  console.log(article,"ARTICLE")
+  console.log(article, 'ARTICLE');
 
   if (article?.error) {
     return <div>Error: {article.error.value.message}</div>;
@@ -20,5 +20,3 @@ export default async function EditArticlePage({ params }: { params: any }) {
     </div>
   );
 }
-
-

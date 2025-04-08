@@ -102,7 +102,9 @@ const NewsCard = (props: NewsCardProps) => {
   };
 
   const handleRestore = async () => {
-    const res = await eden.editor.news({ id: props._id as string }).restore.post();
+    const res = await eden.editor
+      .news({ id: props._id as string })
+      .restore.post();
     if (res?.error) {
       toast.error(res.error.value.message);
     } else {
