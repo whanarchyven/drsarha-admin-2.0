@@ -7,6 +7,7 @@ import { createArticlesApiController } from './controllers/ArticlesApiController
 import { createTelegramBotController } from './controllers/TelegramBotController'
 const db = await connectDB()
 
+const port = process.env.PORT || 3003
 const app = new Elysia({
 
 })
@@ -22,9 +23,9 @@ const app = new Elysia({
     .use(createTelegramBotController(db))
     .listen({
         idleTimeout: 60,
-        port: 3003
+        port: port
     })
 
-console.log('🦊 Сервер запущен на порту 3003')
+console.log(`🦊 Сервер запущен на порту ${port}`)
 
 export type App = typeof app 
